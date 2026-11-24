@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ★ 관리자 구글 계정(지메일)을 아래 한 줄에 적어요. 여러 명이면 쉼표로 이어서.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in ['관리자이메일@gmail.com'];
+    }
+
+    // 내 데이터(학생 정보 포함): 나만 읽고 쓸 수 있어요. 관리자도 못 봐요.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // 가입 정보(이름·이메일·용량): 본인은 읽고 쓰기, 관리자는 읽기만
+    match /profiles/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

@@ -1,0 +1,81 @@
+/* ===== 디자인 토큰: 테마마다 값만 바뀌고, 컴포넌트는 항상 같은 이름을 씁니다 ===== */
+:root {
+  --font: "Pretendard Variable", Pretendard, "Noto Sans KR", -apple-system, "Segoe UI", sans-serif;
+  --fs-xs: 12px; --fs-sm: 13.5px; --fs-md: 15px; --fs-lg: 18px; --fs-xl: 24px; --fs-2xl: 32px; --fs-3xl: 44px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --heading-weight: 700; --heading-tracking: -0.02em;
+  --blur: 0px; --bg-image: none;
+  --glow: none;
+  --success: #1f9d6a; --warn: #d98a0b; --danger: #d6455d;
+  --holiday: #e0566b; --closure: #1f9d6a;
+}
+
+/* ---------- 1. 플랫 (기본) ---------- */
+[data-theme="flat"][data-mode="light"], :root:not([data-theme]) {
+  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #f1f3f6; --surface-3: #e8ebf0;
+  --text: #14171c; --text-2: #4b5563; --text-3: #8a93a1;
+  --border: #e3e6eb; --border-strong: #cfd4dc;
+  --primary: #3461f0; --primary-hover: #2a52d6; --primary-contrast: #fff; --primary-soft: #e8eefe; --accent: #12a594; --accent-soft: #dff5f2;
+  --track: #e8ebf0; --ring: rgba(52, 97, 240, .35);
+  --radius: 14px; --radius-sm: 9px; --radius-pill: 999px; --border-w: 1px;
+  --shadow: none; --shadow-pop: 0 12px 32px rgba(20, 23, 28, .14);
+  --sidebar-bg: #ffffff;
+}
+[data-theme="flat"][data-mode="dark"] {
+  --bg: #0f1115; --surface: #171a20; --surface-2: #1e222a; --surface-3: #262b35;
+  --text: #eceff4; --text-2: #aab2c0; --text-3: #6f7888;
+  --border: #272c36; --border-strong: #363c49;
+  --primary: #6b8cff; --primary-hover: #86a0ff; --primary-contrast: #0b1020; --primary-soft: #1d2744; --accent: #3ecfbd; --accent-soft: #15332f;
+  --track: #262b35; --ring: rgba(107, 140, 255, .45);
+  --radius: 14px; --radius-sm: 9px; --radius-pill: 999px; --border-w: 1px;
+  --shadow: none; --shadow-pop: 0 12px 32px rgba(0, 0, 0, .5);
+  --sidebar-bg: #13161b;
+}
+
+/* ---------- 2. 글래스모피즘 ---------- */
+[data-theme="glass"][data-mode="light"] {
+  --bg: #b9c8ff; --surface: rgba(255, 255, 255, .42); --surface-2: rgba(255, 255, 255, .5); --surface-3: rgba(255, 255, 255, .6);
+  --text: #1a1f3a; --text-2: #3b4268; --text-3: #5d6490;
+  --border: rgba(255, 255, 255, .7); --border-strong: rgba(255, 255, 255, .9);
+  --primary: #5b4bff; --primary-hover: #4a3be6; --primary-contrast: #fff; --primary-soft: rgba(91, 75, 255, .16); --accent: #ff6aa8; --accent-soft: rgba(255, 106, 168, .18);
+  --track: rgba(255, 255, 255, .55); --ring: rgba(91, 75, 255, .45);
+  --radius: 22px; --radius-sm: 13px; --radius-pill: 999px; --border-w: 1px;
+  --shadow: 0 8px 32px rgba(60, 70, 160, .18); --shadow-pop: 0 20px 50px rgba(60, 70, 160, .3);
+  --blur: 22px; --sidebar-bg: rgba(255, 255, 255, .3);
+  --bg-image: radial-gradient(700px 500px at 10% 10%, #ffc2e2 0%, transparent 60%), radial-gradient(800px 600px at 90% 20%, #9ff0ff 0%, transparent 55%), radial-gradient(900px 700px at 50% 100%, #c9b6ff 0%, transparent 60%);
+}
+[data-theme="glass"][data-mode="dark"] {
+  --bg: #0d0f24; --surface: rgba(255, 255, 255, .08); --surface-2: rgba(255, 255, 255, .12); --surface-3: rgba(255, 255, 255, .18);
+  --text: #f2f3ff; --text-2: #c3c7ee; --text-3: #8c91c2;
+  --border: rgba(255, 255, 255, .16); --border-strong: rgba(255, 255, 255, .3);
+  --primary: #8f84ff; --primary-hover: #a79eff; --primary-contrast: #0d0f24; --primary-soft: rgba(143, 132, 255, .22); --accent: #ff7ab8; --accent-soft: rgba(255, 122, 184, .2);
+  --track: rgba(255, 255, 255, .12); --ring: rgba(143, 132, 255, .55);
+  --radius: 22px; --radius-sm: 13px; --radius-pill: 999px; --border-w: 1px;
+  --shadow: 0 8px 32px rgba(0, 0, 0, .35); --shadow-pop: 0 20px 50px rgba(0, 0, 0, .6);
+  --blur: 22px; --sidebar-bg: rgba(255, 255, 255, .05);
+  --bg-image: radial-gradient(700px 500px at 10% 10%, #5a1d6b 0%, transparent 60%), radial-gradient(800px 600px at 90% 20%, #0d4d6b 0%, transparent 55%), radial-gradient(900px 700px at 50% 100%, #2a1f7a 0%, transparent 60%);
+}
+
+/* ---------- 3. 네오브루탈리즘 ---------- */
+[data-theme="brutal"][data-mode="light"] {
+  --bg: #fff4d6; --surface: #ffffff; --surface-2: #ffe9a8; --surface-3: #ffd666;
+  --text: #111; --text-2: #222; --text-3: #555;
+  --border: #111; --border-strong: #111;
+  --primary: #ff5c8a; --primary-hover: #ff3d73; --primary-contrast: #111; --primary-soft: #ffd1de; --accent: #3dd6c6; --accent-soft: #b8f2ec;
+  --track: #fff; --ring: #111;
+  --radius: 10px; --radius-sm: 6px; --radius-pill: 10px; --border-w: 2.5px;
+  --shadow: 4px 4px 0 #111; --shadow-pop: 8px 8px 0 #111;
+  --sidebar-bg: #ffe9a8; --heading-weight: 800; --heading-tracking: -0.03em;
+  --holiday: #ff3d73; --closure: #14a35d;
+}
+[data-theme="brutal"][data-mode="dark"] {
+  --bg: #17151f; --surface: #232030; --surface-2: #2f2b42; --surface-3: #3b3656;
+  --text: #fff; --text-2: #e5e3f2; --text-3: #aaa6c4;
+  --border: #fff; --border-strong: #fff;
+  --primary: #ffd23f; --primary-hover: #ffe070; --primary-contrast: #111; --primary-soft: #4d4420; --accent: #3dd6c6; --accent-soft: #1b4a45;
+  --track: #17151f; --ring: #fff;
+  --radius: 10px; --radius-sm: 6px; --radius-pill: 10px; --border-w: 2.5px;
+  --shadow: 4px 4px 0 #fff; --shadow-pop: 8px 8px 0 #fff;
+  --sidebar-bg: #2f2b42; --heading-weight: 800; --heading-tracking: -0.03em;
+}
