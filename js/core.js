@@ -159,7 +159,7 @@
   };
   const Ctx = React.createContext(null);
   PE.useStore = () => React.useContext(Ctx);
-  PE.StoreProvider = function StoreProvider({ children, user }) {
+  PE.StoreProvider = function StoreProvider({ children, user, sample, exitSample }) {
     const { useState, useEffect, useRef, useMemo } = React;
     const [state, setState] = useState(PE.seedState);
     const [ready, setReady] = useState(false);
@@ -173,6 +173,7 @@
     const useCloud = (r, local) => { if (local) keep("pe2-v1-backup", local); const st = PE.normalize(r.data); baseRef.current = r.savedAt; C.setMeta(uid, { base: r.savedAt, dirty: false }); cdirty.current = false; setState(st); PE.storage.save(st); };
     useEffect(() => {
       let off = false;
+      if (sample) { setState(PE.normalize(JSON.parse(JSON.stringify(window.PE_SAMPLE)))); setReady(true); return; }
       PE.storage.load().then(async (s) => {
         const local = s && s.v === 1 ? PE.normalize(s) : null;
         if (!cloud) { if (!off) { if (local) setState(local); setReady(true); } return; }
@@ -189,7 +190,7 @@
       return () => { off = true; };
     }, [uid]);
     useEffect(() => {
-      if (!ready || !dirty.current) return;
+      if (!ready || !dirty.current || sample) return;
       if (!cloud) setSaveS("saving"); clearTimeout(timer.current);
       timer.current = setTimeout(async () => {
         try { await PE.storage.save(state); dirty.current = false; if (cloud) { C.setMeta(uid, { base: baseRef.current, dirty: cdirty.current }); } else setSaveS("saved"); } catch (e) { setSaveS("error"); }
@@ -274,7 +275,7 @@
         toggleClass: (g, k) => set((p) => yr(p, (y) => { const cur = y.grades[g].mine; return { ...y, grades: { ...y.grades, [g]: { ...y.grades[g], mine: cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k].sort((a, b) => a - b) } } }; })),
       };
     }, []);
-    const value = { state, ready, saveS, demo, setDemo, conflict, resolveConflict, cloud, user, ...api, yd: state.years[state.year] };
+    const value = { state, ready, saveS, demo, setDemo, conflict, resolveConflict, cloud, user, sample: !!sample, exitSample, ...api, yd: state.years[state.year] };
     return React.createElement(Ctx.Provider, { value }, ready || !cloud ? children : React.createElement("p", { style: { padding: 24, fontFamily: "sans-serif", color: "#888" } }, "내 데이터를 불러오는 중…"));
   };
 })();

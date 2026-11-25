@@ -224,7 +224,8 @@
     };
     return h`<${PE.Popover} open=${open} at=${at} onClose=${onClose}>
       <div className="smenu">
-        <div className="smenu-sec first"><b>테마</b>
+        ${PE.AccountSection ? h`<${PE.AccountSection} onClose=${onClose} />` : null}
+        <div className="smenu-sec"><b>테마</b>
           <div className="mini-themes">${PE.THEMES.map((t) => h`<button key=${t.id} type="button" className="theme-card mini" aria-pressed=${S.state.theme === t.id} onClick=${() => S.setTheme(t.id)}>
             <div className="pv" data-theme=${t.id} data-mode=${resolved}><div className="pc"><div className="pb"><i></i></div></div><div className="pb" style=${{ width: "70%" }}><i style=${{ background: "var(--accent)", width: "40%" }}></i></div></div><b>${t.name}</b></button>`)}</div>
           <div className="set-row"><span>밝기</span><${PE.Seg} label="밝기" value=${S.state.mode} onChange=${S.setMode} options=${[{ value: "auto", label: "자동" }, { value: "light", label: "라이트" }, { value: "dark", label: "다크" }]} /></div>
@@ -239,11 +240,10 @@
           <div className="set-row"><span>화면 폭</span><${PE.Seg} label="화면 폭" value=${S.state.prefs.width || 2} onChange=${(v) => S.setPref("width", v)} options=${[{ value: 1, label: "1단계" }, { value: 2, label: "2단계" }, { value: 3, label: "3단계" }]} /></div></div>
         <div className="smenu-sec"><b>대시보드</b>
           <div className="set-row"><span>진행률 보기</span><${PE.Seg} label="진행률 보기" value=${S.state.prefs.dash} onChange=${(v) => S.setPref("dash", v)} options=${[{ value: "grade", label: "학년별" }, { value: "class", label: "반별" }]} /></div></div>
-        ${PE.AccountSection ? h`<${PE.AccountSection} onClose=${onClose} />` : null}
         <div className="smenu-sec"><b>데이터 백업</b>
           <div className="set-row"><${PE.Button} size="sm" onClick=${backup}>${I("download")} 저장<//><${PE.Button} size="sm" onClick=${() => fileRef.current && fileRef.current.click()}>${I("upload")} 불러오기<//></div>
           <input ref=${fileRef} type="file" accept=".json,application/json" hidden onChange=${restore} />
-          ${msg ? h`<p className=${msg.err ? "form-err" : "card-sub"}>${msg.text}</p>` : h`<p className="card-sub">학생 이름이 들어 있으니 안전하게 보관하세요.</p>`}</div>
+          ${msg ? h`<p className=${msg.err ? "form-err" : "card-sub"}>${msg.text}</p>` : null}</div>
       </div><//>`;
   };
 

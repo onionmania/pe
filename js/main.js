@@ -23,9 +23,9 @@
       <header className="topbar">
         <div className="brand"><button type="button" className="brand-mark" data-pop-ignore="1" aria-label="로고 이모지 고르기" title="눌러서 이모지 바꾸기" onClick=${(e) => { const r = e.currentTarget.getBoundingClientRect(); setLogoAt(logoAt ? null : { x: r.left, y: r.bottom }); }}>${logo}</button><a href="#dashboard"><b>체육 워크스페이스</b></a></div>
         <nav className="topnav" aria-label="메뉴">${NAV.map(link)}</nav>
-        <span className="grow"></span>${r === "dashboard" ? h`<${PE.Seg} label="미리보기" value=${S.demo ? "on" : "off"} onChange=${(v) => S.setDemo(v === "on")} options=${[{ value: "off", label: "실제 값" }, { value: "on", label: "예시로 채워 보기" }]} />` : null}<${PE.SaveBadge} s=${S.saveS} />
+        <span className="grow"></span><${PE.SaveBadge} s=${S.saveS} />
         <${PE.Button} icon variant="ghost" data-pop-ignore="1" aria-label="설정" onClick=${(e) => { const r = e.currentTarget.getBoundingClientRect(); setMenuAt(menuAt ? null : { x: r.right, y: r.bottom }); }}>${I("gear")}<//></header>
-      ${r === "dashboard" ? h`<div className="demo-bar"><${PE.Seg} label="미리보기" value=${S.demo ? "on" : "off"} onChange=${(v) => S.setDemo(v === "on")} options=${[{ value: "off", label: "실제 값" }, { value: "on", label: "예시로 채워 보기" }]} /></div>` : null}
+      ${S.sample ? h`<div className="sample-bar"><span>샘플 데이터를 둘러보는 중이에요. 고쳐도 저장되지 않고, 새로고침하면 처음으로 돌아가요.</span><${PE.Button} size="sm" variant="primary" onClick=${S.exitSample}>구글로 로그인<//></div>` : null}
       <div className="main"><${Boundary} key=${r}><${Page} /><//></div>
       <nav className="tabbar" aria-label="메뉴">${NAV.map((n) => h`<a key=${n.to} href=${"#" + n.to} aria-current=${r === n.to ? "page" : undefined}>${I(n.icon)}${n.short || n.label}</a>`)}
         <button type="button" className="tab-gear" data-s=${S.saveS} data-pop-ignore="1" aria-label="설정 · 저장 상태" onClick=${(e) => { const b = e.currentTarget.getBoundingClientRect(); setMenuAt(menuAt ? null : { x: b.right, y: b.top }); }}>${I("gear")}<span><i></i>${S.saveS === "saving" ? "저장 중" : S.saveS === "error" ? "실패" : S.saveS === "toobig" ? "용량" : "저장됨"}</span></button></nav>
@@ -46,13 +46,13 @@
         <button type="button" className="cf-card" onClick=${() => S.resolveConflict("cloud")}><b>클라우드의 데이터</b><span>학생 ${cnt(c.cloud.data)}명 · ${when(c.cloud.savedAt)} 저장</span><em>이 기기를 클라우드 데이터로 바꿔요</em></button></div><//>`;
   }
   function Root() {
-    const A = PE.useAuth(); const [localOnly, setLocal] = useState(() => { try { return localStorage.getItem("pe2-localonly") === "1"; } catch (e) { return false; } });
+    const A = PE.useAuth(); const [sample, setSample] = useState(false);
     const body = h`<${App} /><${ConflictDialog} />`;
     if (!PE.cloud.on) return h`<${PE.StoreProvider}>${body}<//>`;
     if (A.status === "loading") return h`<p style=${{ padding: 24, fontFamily: "sans-serif", color: "#888" }}>불러오는 중…</p>`;
     if (A.status === "in") return h`<${PE.StoreProvider} key=${A.user.uid} user=${A.user}>${body}<//>`;
-    if (localOnly) return h`<${PE.StoreProvider} key="local">${body}<//>`;
-    return h`<${PE.LoginScreen} onLocal=${() => { try { localStorage.setItem("pe2-localonly", "1"); } catch (e) { /* */ } setLocal(true); }} />`;
+    if (sample) return h`<${PE.StoreProvider} key="sample" sample exitSample=${() => setSample(false)}>${body}<//>`;
+    return h`<${PE.LoginScreen} onSample=${() => setSample(true)} />`;
   }
   ReactDOM.createRoot(document.getElementById("root")).render(h`<${Root} />`);
   const boot = document.getElementById("boot"); if (boot) boot.remove();
