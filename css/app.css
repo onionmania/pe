@@ -1307,3 +1307,4 @@ form.field-row { grid-template-columns: minmax(0, 1fr) 40px; }
 .smenu > .smenu-sec:first-child { border-top: 0; }
 .acct-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; } .acct-row .acct { min-width: 0; flex: 1; } .acct-row .acct b, .acct-row .acct span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .acct-btns { display: flex; gap: 6px; flex: none; }
+.ev-new { margin-bottom: 12px; }
