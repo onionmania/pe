@@ -1308,3 +1308,5 @@ form.field-row { grid-template-columns: minmax(0, 1fr) 40px; }
 .acct-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; } .acct-row .acct { min-width: 0; flex: 1; } .acct-row .acct b, .acct-row .acct span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .acct-btns { display: flex; gap: 6px; flex: none; }
 .ev-new { margin-bottom: 12px; }
+.ev-item-top > .grow { flex: 1; min-width: 0; }
+.ev-item-top > .grow { display: grid; gap: 2px; }
