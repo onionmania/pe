@@ -30,24 +30,27 @@
   const norm = (e) => ({ items: (e && e.items) || [], data: (e && e.data) || {} });
 
   function ItemsDialog({ open, onClose, ev, grades, upd }) {
-    const [nm, setNm] = useState(""); const [kind, setKind] = useState("level"); const [gs, setGs] = useState([]); const [del, setDel] = useState(null);
+    const [nm, setNm] = useState(""); const [kind, setKind] = useState("level"); const [gs, setGs] = useState([]); const [del, setDel] = useState(null); const [toMemo, setToMemo] = useState(null);
     const add = () => { const v = nm.trim(); if (!v) return; upd((e) => ({ ...e, items: [...e.items, { id: PE.uid(), name: v, kind, grades: gs }] })); setNm(""); };
     const patch = (id, p) => upd((e) => ({ ...e, items: e.items.map((x) => (x.id === id ? { ...x, ...p } : x)) }));
     const gchips = (val, set) => h`<div className="cc-row ev-gs">${grades.map((g) => h`<button key=${g} type="button" className="cc" style=${{ "--tag": PE.GRADE_COLORS[g] }} aria-pressed=${val.includes(g)} onClick=${() => set(val.includes(g) ? val.filter((x) => x !== g) : [...val, g])}>${g}학년</button>`)}</div>`;
-    return h`<${PE.Dialog} open=${open} onClose=${onClose} mid><h2>평가 항목 관리</h2><p className="sub">학년을 고르지 않으면 모든 학년에 보여요. 4단계는 매우잘함·잘함·보통·노력요함이에요.</p>
-      <div className="ev-items">${ev.items.map((it) => h`<div key=${it.id} className="ev-item">
-          <div className="ev-item-top"><input className="input" aria-label="항목 이름" value=${it.name} onChange=${(e) => patch(it.id, { name: e.target.value })} onBlur=${(e) => { if (!e.target.value.trim()) patch(it.id, { name: "항목" }); }} />
-            <span className="badge">${(KINDS.find((k) => k.value === it.kind) || KINDS[0]).label}</span>
-            <${PE.Button} icon variant="ghost" aria-label=${it.name + (it.hidden ? " 보이기" : " 숨기기")} onClick=${() => patch(it.id, { hidden: !it.hidden })}>${I(it.hidden ? "eyeoff" : "eye")}<//>
-            <${PE.Button} icon variant="ghost" aria-label=${it.name + " 삭제"} onClick=${() => setDel(it)}>${I("trash")}<//></div>
-          ${gchips(it.grades || [], (v) => patch(it.id, { grades: v }))}</div>`)}
-        ${!ev.items.length ? h`<p className="card-sub">아직 항목이 없어요. 아래에서 만들어 주세요.</p>` : null}</div>
+    return h`<${PE.Dialog} open=${open} onClose=${onClose} mid><h2>평가 항목 관리</h2><p className="sub">학년을 고르지 않으면 모든 학년에 보여요.</p>
       <form className="ev-new" onSubmit=${(e) => { e.preventDefault(); add(); }}>
         <div className="ev-item-top"><input className="input" placeholder="새 항목 (예: 피구 · 던지기)" aria-label="새 항목 이름" value=${nm} onChange=${(e) => setNm(e.target.value)} />
           <${PE.Seg} label="기록 방식" value=${kind} onChange=${setKind} options=${KINDS} />
           <${PE.Button} icon variant="primary" type="submit" aria-label="항목 추가" disabled=${!nm.trim()}>${I("plus")}<//></div>
         ${gchips(gs, setGs)}</form>
+      <div className="ev-items">${ev.items.map((it) => h`<div key=${it.id} className="ev-item">
+          <div className="ev-item-top"><input className="input" aria-label="항목 이름" value=${it.name} onChange=${(e) => patch(it.id, { name: e.target.value })} onBlur=${(e) => { if (!e.target.value.trim()) patch(it.id, { name: "항목" }); }} />
+            <span className="badge">${(KINDS.find((k) => k.value === it.kind) || KINDS[0]).label}</span>
+            ${it.kind !== "text" ? h`<${PE.Button} variant="ghost" aria-label=${it.name + " 메모로 바꾸기"} onClick=${() => setToMemo(it)}>메모로 바꾸기<//>` : null}
+            <${PE.Button} icon variant="ghost" aria-label=${it.name + (it.hidden ? " 보이기" : " 숨기기")} onClick=${() => patch(it.id, { hidden: !it.hidden })}>${I(it.hidden ? "eyeoff" : "eye")}<//>
+            <${PE.Button} icon variant="ghost" aria-label=${it.name + " 삭제"} onClick=${() => setDel(it)}>${I("trash")}<//></div>
+          ${gchips(it.grades || [], (v) => patch(it.id, { grades: v }))}</div>`)}
+        ${!ev.items.length ? h`<p className="card-sub">아직 항목이 없어요. 아래에서 만들어 주세요.</p>` : null}</div>
       <div className="dialog-foot"><div></div><${PE.Button} variant="primary" onClick=${onClose}>완료<//></div>
+      <${PE.ConfirmDialog} open=${!!toMemo} title=${toMemo ? `‘${toMemo.name}’ 항목을 메모로 바꿀까요?` : ""} body="입력된 값은 그대로 남고, 이제 글자도 쓸 수 있어요. 메모는 점수나 4단계로 되돌릴 수 없어요." confirmLabel="메모로 바꾸기" onClose=${() => setToMemo(null)}
+        onConfirm=${() => { const id = toMemo.id; upd((e) => { const data = {}; for (const [sid, v] of Object.entries(e.data)) { const r = { ...v }; if (r[id] != null) r[id] = String(LEGACY[r[id]] || r[id]); data[sid] = r; } return { items: e.items.map((x) => { if (x.id !== id) return x; const { conv: _c, ...rest } = x; return { ...rest, kind: "text" }; }), data }; }); setToMemo(null); }} />
       <${PE.ConfirmDialog} open=${!!del} danger title=${del ? `‘${del.name}’ 항목을 삭제할까요?` : ""} body="이 항목에 입력된 기록이 모든 반에서 함께 삭제돼요." confirmLabel="삭제" onClose=${() => setDel(null)}
         onConfirm=${() => { const id = del.id; upd((e) => { const data = {}; for (const [sid, v] of Object.entries(e.data)) { const { [id]: _x, ...rest } = v; data[sid] = rest; } return { items: e.items.filter((x) => x.id !== id), data }; }); setDel(null); }} /><//>`;
   }
