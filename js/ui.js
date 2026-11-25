@@ -237,8 +237,7 @@
           <div className="set-row"><span>보는 학기</span><${PE.Seg} label="학기" value=${S.state.prefs.sem || (PE.currentSem(S.yd, PE.today()) === 2 ? 2 : 1)} onChange=${(v) => S.setPref("sem", v)} options=${[{ value: 1, label: "1학기" }, { value: 2, label: "2학기" }]} /></div></div>
         <div className="smenu-sec"><b>화면</b>
           <div className="set-row"><span>달리는 사람</span><${PE.Seg} label="달리는 사람" value=${runner ? "on" : "off"} onChange=${(v) => S.setPref("runner", v === "on")} options=${[{ value: "on", label: "켜기" }, { value: "off", label: "끄기" }]} /></div>
-          <div className="set-row"><span>화면 폭</span><${PE.Seg} label="화면 폭" value=${S.state.prefs.width || 2} onChange=${(v) => S.setPref("width", v)} options=${[{ value: 1, label: "1단계" }, { value: 2, label: "2단계" }, { value: 3, label: "3단계" }]} /></div></div>
-        <div className="smenu-sec"><b>대시보드</b>
+          <div className="set-row"><span>화면 폭</span><${PE.Seg} label="화면 폭" value=${S.state.prefs.width || 2} onChange=${(v) => S.setPref("width", v)} options=${[{ value: 1, label: "1단계" }, { value: 2, label: "2단계" }, { value: 3, label: "3단계" }]} /></div>
           <div className="set-row"><span>진행률 보기</span><${PE.Seg} label="진행률 보기" value=${S.state.prefs.dash} onChange=${(v) => S.setPref("dash", v)} options=${[{ value: "grade", label: "학년별" }, { value: "class", label: "반별" }]} /></div></div>
         <div className="smenu-sec"><b>데이터 백업</b>
           <div className="set-row"><${PE.Button} size="sm" onClick=${backup}>${I("download")} 저장<//><${PE.Button} size="sm" onClick=${() => fileRef.current && fileRef.current.click()}>${I("upload")} 불러오기<//></div>

@@ -89,7 +89,7 @@
     const S = PE.useStore();
     return h`<div className="smenu-sec first"><b>계정</b>
       ${A.status !== "in" ? h`<p className="card-sub">${S.sample ? "샘플 데이터를 둘러보는 중이에요." : "로그인하지 않았어요."}</p><div className="set-row"><${PE.Button} size="sm" variant="primary" onClick=${S.exitSample}>구글로 로그인<//></div>`
-      : h`<div className="acct"><b>${A.user.displayName || "이름 없음"}</b><span className="card-sub">${A.user.email}</span></div>
-        <div className="set-row">${C.isAdmin(A.user) ? h`<a className="btn sm" href="#admin" onClick=${onClose}>관리자 페이지</a>` : null}<${PE.Button} size="sm" variant="danger" onClick=${() => C.signOut()}>로그아웃<//></div>`}</div>`;
+      : h`<div className="acct-row"><div className="acct"><b>${A.user.displayName || "이름 없음"}</b><span className="card-sub">${A.user.email}</span></div>
+        <div className="acct-btns">${C.isAdmin(A.user) ? h`<a className="btn sm" href="#admin" onClick=${onClose}>관리자</a>` : null}<${PE.Button} size="sm" variant="danger" onClick=${() => C.signOut()}>로그아웃<//></div></div>`}</div>`;
   };
 })();
