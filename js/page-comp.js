@@ -339,7 +339,7 @@
             ${!played ? h`<${PE.Button} size="sm" onClick=${isL ? shuffle : shuffleT} title=${isL ? "경기 순서를 무작위로 다시 짜요" : "대진을 무작위로 다시 짜요"}>${I("shuffle")} 대진표 섞기<//>` : null}
             <${PE.Button} size="sm" onClick=${() => setEditOpen(true)}>${I("settings")} 설정<//>
             <${PE.Button} size="sm" disabled=${!played} onClick=${() => setReset(true)}>${I("eraser")} 기록 초기화<//>
-            <${PE.Button} icon size="sm" variant="danger" aria-label="대회 삭제" onClick=${() => setDel(true)}>${I("trash")}<//></div></div>
+            <${PE.Button} icon size="sm" aria-label="보관함으로 보내기" title="보관함으로 보내기" onClick=${() => setDel(true)}>${I("archive")}<//></div></div>
         <div className="cd-prog"><${PE.Bar} pctText pct=${pct} runner=${S.state.prefs.runner !== false ? "kid" : false} label="대회 진행률" />${champ ? h`<span className="champ">${I("trophy")} 우승 ${champ}</span>` : null}</div></section>
 
       ${isL && c.unit === "individual" ? null : ENT}
@@ -366,7 +366,7 @@
           ${true ? h`<button type="button" className="flag big" aria-pressed=${!!big[menu.id]} onClick=${() => flag("big", menu.id)}>${I("flame")} 빅매치</button>` : null}${c.unit === "team" ? h`<button type="button" className="flag" onClick=${() => { setTeamEd(menu.id); setMenu(null); }}>${I("pencil")} 팀 수정</button>` : null}</div>` : null}<//>
       ${m ? h`<${ResultDialog} key=${m.key} c=${c} m=${m} nm=${nm} onClose=${() => setM(null)} onSave=${save} />` : null}
       <${PE.ConfirmDialog} open=${reset} danger title="경기 기록을 모두 지울까요?" body="대진과 참가자는 그대로 두고 결과만 지워요." confirmLabel="지우기" onClose=${() => setReset(false)} onConfirm=${() => { upd((x) => ({ ...x, res: {} })); setReset(false); }} />
-      <${PE.ConfirmDialog} open=${del} danger title=${`‘${c.name}’ 대회를 삭제할까요?`} body="경기 기록도 함께 삭제돼요." confirmLabel="삭제" onClose=${() => setDel(false)} onConfirm=${() => { S.updYear((y) => ({ ...y, comps: y.comps.filter((x) => x.id !== c.id) })); onGone(); }} />
+      <${PE.ConfirmDialog} open=${del} title=${`‘${c.name}’ 대회를 보관함으로 보낼까요?`} body="목록에서 사라지고 보관함에 모아 둬요. 기록은 그대로 남고, 보관함에서 다시 꺼내거나 삭제할 수 있어요." confirmLabel="보관함으로" onClose=${() => setDel(false)} onConfirm=${() => { S.updYear((y) => ({ ...y, comps: y.comps.map((x) => (x.id === c.id ? { ...x, archived: true } : x)) })); setDel(false); onGone(); }} />
     <//>`;
   }
 
@@ -455,20 +455,37 @@ return h`<${PE.Dialog} open=${true} onClose=${onClose} wide full>
           <${PE.Button} onClick=${onClose}>닫기<//></div></div><//>`;
   }
 
+  /* ---------- 보관함: 꺼내기 · 삭제 ---------- */
+  function ArchiveBox({ kept, prog, S, onClose }) {
+    const [del, setDel] = useState(null);
+    const patch = (id, fn) => S.updYear((y) => ({ ...y, comps: fn(y.comps, id) }));
+    return h`<${PE.Dialog} open=${true} onClose=${onClose} mid><h2>대회 보관함</h2><p className="sub">보관한 대회는 목록과 점수판에 나오지 않아요. 삭제는 여기에서만 할 수 있어요.</p>
+      <div className="ev-items">${kept.length ? kept.map((x) => { const [p, t] = prog(x); return h`<div key=${x.id} className="ev-item"><div className="ev-item-top">
+          <div className="grow"><b>${x.name}</b> <span className="card-sub">${x.format === "league" ? "리그" : "토너먼트"} · ${x.entrants.length}${x.unit === "team" ? "팀" : x.unit === "class" ? "반" : "명"} · ${t ? Math.round((p / t) * 100) : 0}%</span></div>
+          <${PE.Button} size="sm" onClick=${() => patch(x.id, (cs, id) => cs.map((q) => { if (q.id !== id) return q; const { archived: _a, ...rest } = q; return rest; }))}>꺼내기<//>
+          <${PE.Button} icon variant="ghost" aria-label=${x.name + " 삭제"} onClick=${() => setDel(x)}>${I("trash")}<//></div></div>`; }) : h`<p className="card-sub">보관한 대회가 없어요.</p>`}</div>
+      <div className="dialog-foot"><div></div><${PE.Button} variant="primary" onClick=${onClose}>닫기<//></div>
+      <${PE.ConfirmDialog} open=${!!del} danger title=${del ? `‘${del.name}’ 대회를 삭제할까요?` : ""} body="경기 기록도 함께 삭제되고 되돌릴 수 없어요." confirmLabel="삭제" onClose=${() => setDel(null)} onConfirm=${() => { const id = del.id; patch(id, (cs, i) => cs.filter((q) => q.id !== i)); setDel(null); }} /><//>`;
+  }
+
   function Comps() {
     const S = PE.useStore(); const { yd } = S; const classes = PE.myClasses(yd);
     const [sel, setSel] = PE.useSaved("compSel", null); const [wiz, setWiz] = useState(false); const [sb, setSb] = useState(false);
-    const c = yd.comps.find((x) => x.id === sel) || yd.comps[0] || null;
+    const [box, setBox] = useState(false);
+    const live = yd.comps.filter((x) => !x.archived); const kept = yd.comps.filter((x) => x.archived);
+    const c = live.find((x) => x.id === sel) || live[0] || null;
     const prog = (x) => { if (x.format === "league") { const t = x.matches.length; return [x.matches.filter((q) => x.res[q.id]).length, t]; } const b = bracket(x); const l = [...b.rounds.flat().filter((q) => !q.bye), ...(b.third ? [b.third] : [])]; return [l.filter((q) => q.res).length, l.length]; };
     return h`<div className="page">
       <div className="roster-bar">
-        <div className="club-chips six">${yd.comps.map((x) => { const [p, t] = prog(x); const pct = t ? Math.round((p / t) * 100) : 0; return h`<button key=${x.id} type="button" className="club-chip" aria-pressed=${c && c.id === x.id} onClick=${() => setSel(x.id)}>
+        <div className="club-chips six">${live.map((x) => { const [p, t] = prog(x); const pct = t ? Math.round((p / t) * 100) : 0; return h`<button key=${x.id} type="button" className="club-chip" aria-pressed=${c && c.id === x.id} onClick=${() => setSel(x.id)}>
           <span className="cc-top"><span className="badge">${x.format === "league" ? "리그" : "토너먼트"}</span><b>${x.name}</b></span>
           <span className="cc-bar"><${PE.Bar} pct=${pct} label="대회 진행률" /><em className="num">${pct}%</em></span></button>`; })}</div>
         <div className="comp-btns"><${PE.Button} size="sm" variant="primary" onClick=${() => setWiz(true)}>${I("plus")} 대회 만들기<//>
+          <${PE.Button} size="sm" onClick=${() => setBox(true)}>${I("archive")} 보관함${kept.length ? ` ${kept.length}` : ""}<//>
           <${PE.Button} size="sm" onClick=${() => setSb(true)}>${I("clipboard")} 점수판<//></div></div>
       ${c ? h`<${CompView} key=${c.id} c=${c} S=${S} students=${yd.students} onGone=${() => setSel(null)} />` : null}
-      ${sb ? h`<${Scoreboard} comps=${yd.comps} students=${yd.students} onClose=${() => setSb(false)} onSave=${(id, m, res) => S.updYear((y) => ({ ...y, comps: y.comps.map((x) => (x.id === id ? applyRes(x, m, res) : x)) }))} />` : null}
+      ${sb ? h`<${Scoreboard} comps=${live} students=${yd.students} onClose=${() => setSb(false)} onSave=${(id, m, res) => S.updYear((y) => ({ ...y, comps: y.comps.map((x) => (x.id === id ? applyRes(x, m, res) : x)) }))} />` : null}
+      ${box ? h`<${ArchiveBox} kept=${kept} prog=${prog} S=${S} onClose=${() => setBox(false)} />` : null}
       ${wiz ? h`<${CompWizard} students=${yd.students} classes=${classes} onClose=${() => setWiz(false)} onCreate=${(x) => { S.updYear((y) => ({ ...y, comps: [...y.comps, x] })); setWiz(false); setSel(x.id); }} />` : null}
     </div>`;
   }
