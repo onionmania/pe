@@ -1310,3 +1310,25 @@ form.field-row { grid-template-columns: minmax(0, 1fr) 40px; }
 .ev-new { margin-bottom: 12px; }
 .ev-item-top > .grow { flex: 1; min-width: 0; }
 .ev-item-top > .grow { display: grid; gap: 2px; }
+
+/* 대시보드 4분할 */
+.grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-5); } .dash .grid-4 { gap: 14px; }
+@media (max-width: 1100px) { .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 960px) { .page.dash .grid-4 { grid-template-columns: 1fr; } }
+.grade-row.wide { grid-template-columns: minmax(0, 1fr) 40px; row-gap: 2px; padding: 5px 0; }
+.grade-row.wide .g { grid-column: 1 / 3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--fs-xs); color: var(--text-2); }
+
+/* 평가 칸 표시(결석·1회만·재시험) */
+.ev-cw { display: inline-flex; align-items: center; gap: 4px; }
+.ev-mk { flex: none; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 999px; border: var(--border-w) dashed var(--border-strong); background: transparent; color: var(--text-3); font-size: 11px; font-weight: 750; line-height: 1; opacity: .55; display: inline-grid; place-items: center; }
+.ev-mk svg { width: 12px; height: 12px; } .ev-mk:hover { opacity: 1; }
+.ev-mk.on { opacity: 1; border-style: solid; white-space: nowrap; }
+.ev-mk.m0 { background: color-mix(in srgb, #ef4444 16%, var(--surface)); border-color: #ef4444; color: #b91c1c; }
+.ev-mk.m1 { background: color-mix(in srgb, #facc15 28%, var(--surface)); border-color: #eab308; color: #854d0e; }
+.ev-mk.m2 { background: color-mix(in srgb, #3b82f6 16%, var(--surface)); border-color: #3b82f6; color: #1d4ed8; }
+
+/* 상단 메뉴: 줄바꿈 없이 한 줄, 좁으면 간격·아이콘을 줄여요 */
+.topbar, .topbar * { white-space: nowrap; } .topnav { flex: none; } .topnav a { flex: none; }
+@media (max-width: 1280px) { .topnav a { padding: 0 10px; gap: 6px; } .topnav { margin-left: var(--sp-2); gap: 2px; } }
+@media (max-width: 1160px) { .brand b { display: none; } .topnav a svg { display: none; } .topnav a { padding: 0 9px; } }
+.pc-scroll { max-height: 300px; overflow-y: auto; padding-right: 4px; }
