@@ -492,8 +492,8 @@ return h`<${PE.Dialog} open=${true} onClose=${onClose} wide full>
     const prog = PE.compProgress;
     return h`<div className="page">
       <div className="roster-bar">
-        <div className="club-chips six">${live.map((x) => { const [p, t] = prog(x); const pct = t ? Math.round((p / t) * 100) : 0; return h`<button key=${x.id} type="button" className="club-chip" aria-pressed=${c && c.id === x.id} onClick=${() => setSel(x.id)}>
-          <span className="cc-top"><span className="badge">${x.format === "league" ? "리그" : "토너먼트"}</span><b>${x.name}</b></span>
+        <div className="club-chips six comp-chips">${live.map((x) => { const [p, t] = prog(x); const pct = t ? Math.round((p / t) * 100) : 0; return h`<button key=${x.id} type="button" className="club-chip" style=${{ "--p": pct + "%" }} aria-pressed=${c && c.id === x.id} onClick=${() => setSel(x.id)}>
+          <span className="cc-top"><span className="badge"><span className="bl">${x.format === "league" ? "리그" : "토너먼트"}</span><span className="bs">${x.format === "league" ? "리" : "토"}</span></span><b>${x.name}</b></span>
           <span className="cc-bar"><${PE.Bar} pct=${pct} label="대회 진행률" /><em className="num">${pct}%</em></span></button>`; })}</div>
         <div className="comp-btns"><${PE.Button} size="sm" variant="primary" onClick=${() => setWiz(true)}>${I("plus")} 대회 만들기<//>
           <${PE.Button} size="sm" onClick=${() => setBox(true)}>${I("archive")} 보관함${kept.length ? ` ${kept.length}` : ""}<//>

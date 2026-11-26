@@ -1341,3 +1341,18 @@ form.field-row { grid-template-columns: minmax(0, 1fr) 40px; }
 /* 점수 입력 칸 -10% → 서브 순서 +10% */
 .sb-taps { flex: 9 1 0; min-height: 180px; } .sb-mid { flex: 1 1 auto; min-height: 100px; }
 .sb-mid .sb-now { font-size: 25px; } .sb-mid .sb-now.wait, .sb-mid .sb-now.solo { font-size: 20px; } .sb-mid .sb-ctx { font-size: 13px; }
+
+/* 기초 시간표: 오늘 요일 밑줄 없음 */
+.tt-h.now { color: var(--text-2); } .tt-h.now::after { display: none; }
+/* 대회 버튼: 모바일에서는 동그라미(리·토) + 대회명, 배경이 진행률만큼 채워져요 */
+.comp-chips .bs { display: none; }
+@media (max-width: 600px) {
+  .comp-chips { gap: 6px; }
+  .comp-chips .club-chip { position: relative; display: block; padding: 7px 10px; background-image: linear-gradient(90deg, color-mix(in srgb, var(--primary) 24%, var(--surface)) var(--p), transparent var(--p)); }
+  .comp-chips .cc-bar { display: none; }
+  .comp-chips .cc-top { gap: 7px; }
+  .comp-chips .cc-top b { overflow: hidden; text-overflow: ellipsis; min-width: 0; font-size: var(--fs-sm); }
+  .comp-chips .badge { flex: none; width: 22px; height: 22px; padding: 0; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; line-height: 1; }
+  .comp-chips .bl { display: none; } .comp-chips .bs { display: inline; }
+  .comp-btns { grid-template-columns: repeat(3, minmax(0, 1fr)); } .comp-btns .btn { padding-left: 6px; padding-right: 6px; white-space: nowrap; }
+}
