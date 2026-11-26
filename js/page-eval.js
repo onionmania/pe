@@ -22,7 +22,7 @@
     const bump = (d) => onSet(Math.min(999, Math.max(0, Math.round(((cur || 0) + d) * 100) / 100)));
     return h`<div className="stepper ev-st" role="group" aria-label=${it.name}>
       <button type="button" tabIndex="-1" aria-label="줄이기" disabled=${cur == null || cur <= 0} onClick=${() => bump(-1)}>${I("minus")}</button>
-      <input className="num step-in" inputMode="decimal" enterKeyHint="next" aria-label=${it.name} value=${txt != null ? txt : cur == null ? "" : cur} onFocus=${(e) => e.target.select()}
+      <input className="num step-in" style=${{ width: `calc(${Math.max(1, String(txt != null ? txt : cur == null ? "" : cur).length)}ch + 14px)` }} inputMode="decimal" enterKeyHint="next" aria-label=${it.name} value=${txt != null ? txt : cur == null ? "" : cur} onFocus=${(e) => e.target.select()}
         onChange=${(e) => { const t = e.target.value.replace(/[^\d.]/g, ""); if ((t.match(/\./g) || []).length <= 1) { const [a, b] = t.split("."); setTxt(b == null ? a.slice(0, 3) : a.slice(0, 3) + "." + b.slice(0, 1)); } }} onBlur=${commit}
         onKeyDown=${(e) => { if (e.key === "Enter") { commit(); goDown(e); } }} />
       <button type="button" tabIndex="-1" aria-label="늘리기" onClick=${() => bump(1)}>${I("plus")}</button></div>`;
@@ -87,7 +87,7 @@
     const bump = (d) => onChange(String(Math.min(max, Math.max(0, Math.round(((Number.isFinite(cur) ? cur : 0) + d * step) * 10) / 10))));
     return h`<div className=${cn("stepper dec", bad && "bad")} role="group" aria-label=${label}>
       <button type="button" tabIndex="-1" aria-label="줄이기" disabled=${Number.isFinite(cur) && cur <= 0} onClick=${() => bump(-1)}>${I("minus")}</button>
-      <input className="num step-in" inputMode="decimal" aria-label=${label} value=${value} onFocus=${(e) => e.target.select()}
+      <input className="num step-in" style=${{ width: `calc(${Math.max(1, String(txt != null ? txt : cur == null ? "" : cur).length)}ch + 14px)` }} inputMode="decimal" aria-label=${label} value=${value} onFocus=${(e) => e.target.select()}
         onChange=${(e) => { const t = e.target.value.replace(/[^\d.]/g, ""); if ((t.match(/\./g) || []).length > 1) return; const [a, b] = t.split("."); onChange(b == null ? a.slice(0, 3) : a.slice(0, 3) + "." + b.slice(0, 1)); }}
         onKeyDown=${(e) => { if (e.key === "Enter") { e.preventDefault(); e.target.blur(); } }} />
       <button type="button" tabIndex="-1" aria-label="늘리기" disabled=${Number.isFinite(cur) && cur >= max} onClick=${() => bump(1)}>${I("plus")}</button></div>`;
@@ -140,11 +140,11 @@
         <div><${PE.Button} onClick=${onClose}>취소<//><${PE.Button} variant="primary" disabled=${bad || rBad || holes.length > 0 || !total} onClick=${() => onApply({ ...cv, on: true })}>변환하기<//></div></div><//>`;
   }
 
-  /* 칸 표시: 점수·4단계 옆에서 눌러 결석 → 1회만 → 재시험 → 해제 (기록 값은 따로 두 번째 키 "항목id~"에 저장) */
-  const MARKS = ["결석", "1회만", "재시험"];
+  /* 칸 표시: 점수·4단계 옆에서 눌러 재시험 표시 · 해제 (기록 값은 따로 두 번째 키 "항목id~"에 저장) */
+  const MARKS = ["재시험"];
   function MarkBtn({ it, v, onSet }) {
     const i = MARKS.indexOf(v);
-    return h`<button type="button" tabIndex="-1" className=${cn("ev-mk", i >= 0 && "on m" + i)} title=${(i >= 0 ? v + " · " : "") + "눌러서 표시: 결석 → 1회만 → 재시험 → 해제"} aria-label=${it.name + " 표시 " + (i >= 0 ? v : "없음")} onClick=${() => onSet(i + 1 < MARKS.length ? MARKS[i + 1] : i < 0 ? MARKS[0] : "")}>${i >= 0 ? v : I("flag")}</button>`;
+    return h`<button type="button" tabIndex="-1" className=${cn("ev-mk", i >= 0 && "on m" + i)} title=${(i >= 0 ? v + " · " : "") + "눌러서 재시험 표시 · 다시 누르면 해제"} aria-label=${it.name + " 표시 " + (i >= 0 ? v : "없음")} onClick=${() => onSet(i + 1 < MARKS.length ? MARKS[i + 1] : i < 0 ? MARKS[0] : "")}>${i >= 0 ? v : I("flag")}</button>`;
   }
 
   function ClassPanel({ cls, students, items, data, setVal, setConv, multi }) {

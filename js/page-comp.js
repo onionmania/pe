@@ -1,7 +1,7 @@
 /* 대회 운영: 리그 · 토너먼트 만들기, 경기 기록, 순위표, 대진표 */
 (function () {
   const PE = window.PE, React = window.React, h = PE.h, cn = PE.cn, I = PE.I;
-  const { useState, useMemo, useRef } = React; const ReactDOM = window.ReactDOM;
+  const { useState, useMemo, useRef, useLayoutEffect } = React; const ReactDOM = window.ReactDOM;
   const shuffleArr = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
   /* ---------- 경기 만들기 ---------- */
@@ -381,10 +381,22 @@
     ev.forEach((w) => { if (w !== srv) { srv = w; idx[w] = (idx[w] + 1) % cnt[w]; } });
     const o = srv === "a" ? "b" : "a"; return { side: srv, idx: idx[srv], nxt: { [srv]: idx[srv], [o]: (idx[o] + 1) % cnt[o] } };
   }
+  /* 서브 순서 고르기: 누른 순서대로 왼쪽부터 부드럽게 모여요. 번호 자리는 점선 동그라미로 미리 잡아 둬요 */
+  function OrderBox({ name, ms, ord, setOrd, sname }) {
+    const refs = useRef({}); const prev = useRef({});
+    const list = [...ord, ...ms.filter((s) => !ord.includes(s))];
+    useLayoutEffect(() => { const next = {};
+      for (const sid of list) { const el = refs.current[sid]; if (!el) continue; const r = el.getBoundingClientRect(); next[sid] = { left: r.left, top: r.top }; const p0 = prev.current[sid];
+        if (p0 && (Math.abs(p0.left - r.left) > 1 || Math.abs(p0.top - r.top) > 1)) { el.style.transition = "none"; el.style.transform = `translate(${p0.left - r.left}px, ${p0.top - r.top}px)`; el.getBoundingClientRect(); el.style.transition = "transform .3s cubic-bezier(.2,.8,.2,1)"; el.style.transform = ""; } }
+      prev.current = next; });
+    return h`<div className="sb-ord"><div className="sb-ord-h"><b>${name}</b></div>
+      <div className="sb-chips">${list.map((sid) => { const k = ord.indexOf(sid); return h`<button key=${sid} ref=${(el) => { refs.current[sid] = el; }} type="button" className="cc sb-oc" aria-pressed=${k >= 0} onClick=${() => setOrd(k >= 0 ? ord.filter((q) => q !== sid) : [...ord, sid])}><i className=${cn("sb-no num", k < 0 && "ph")}>${k >= 0 ? k + 1 : ""}</i>${sname(sid)}</button>`; })}</div></div>`;
+  }
+
   function Scoreboard({ comps, students, onClose, onSave }) {
     const [step, setStep] = useState(0); const [cid, setCid] = useState(null); const [a, setA] = useState(null); const [b, setB] = useState(null);
     const [first, setFirst] = useState("a"); const [rule, setRule] = useState("alt"); const [n, setN] = useState(1);
-    const [oa, setOa] = useState([]); const [ob, setOb] = useState([]); const [ev, setEv] = useState([]); const [log, setLog] = useState([]); const [saved, setSaved] = useState(false);
+    const [pen, setPen] = useState({ on: false, a: 0, b: 0 }); const [oa, setOa] = useState([]); const [ob, setOb] = useState([]); const [ev, setEv] = useState([]); const [log, setLog] = useState([]); const [saved, setSaved] = useState(false);
     const c = comps.find((x) => x.id === cid) || null;
     const byId = useMemo(() => new Map(students.map((x) => [x.id, x])), [students]);
     const E = useMemo(() => new Map((c ? c.entrants : []).map((e) => [e.id, e])), [c]);
@@ -401,7 +413,7 @@
     const needA = mem(a).length > 1 && oa.length !== mem(a).length, needB = mem(b).length > 1 && ob.length !== mem(b).length;
     const start = () => { setSaved(false); setStep(3); };
     const cur = serveNow(rule, n, first, ev, oa.length, ob.length);
-    const ca = ev.filter((x) => x === "a").length, cb = ev.length - ca;
+    const pa = pen.on ? pen.a : 0, pb = pen.on ? pen.b : 0; const ca = ev.filter((x) => x === "a").length + pa, cb = ev.filter((x) => x === "b").length + pb;
     const won = (arr) => ({ a: arr.filter((q) => q.a > q.b).length, b: arr.filter((q) => q.b > q.a).length });
     const sets = c && c.scoring === "sets"; const wdl = c && c.scoring === "wdl";
     const all = sets ? [...log, ...(ev.length ? [{ a: ca, b: cb }] : [])] : [];
@@ -414,9 +426,7 @@
     const doSave = () => {
       const swap = link.a !== a; const x = swap ? fb : fa, y = swap ? fa : fb; const w = x > y ? "a" : y > x ? "b" : "d";
       onSave(c.id, link, wdl ? { sa: null, sb: null, w } : { sa: x, sb: y, w }); setSaved(true); };
-    const orderBox = (id, ord, setOrd) => { const ms = mem(id); if (ms.length < 2) return null;
-      return h`<div className="sb-ord"><div className="sb-ord-h"><b>${nm(id)}</b></div>
-        <div className="sb-chips">${ms.map((sid) => { const k = ord.indexOf(sid); return h`<button key=${sid} type="button" className="cc" aria-pressed=${k >= 0} onClick=${() => setOrd(k >= 0 ? ord.filter((q) => q !== sid) : [...ord, sid])}>${k >= 0 ? h`<b className="sb-no num">${k + 1}</b>` : null}${sname(sid)}</button>`; })}</div></div>`; };
+    const orderBox = (id, ord, setOrd) => { const ms = mem(id); if (ms.length < 2) return null; return h`<${OrderBox} name=${nm(id)} ms=${ms} ord=${ord} setOrd=${setOrd} sname=${sname} />`; };
     const crumbs = ["대회", "선수·팀", "서브", "점수"];
     const sideName = (k, id) => h`<div className=${cn("sb-name", cur.side === k && "serving")}><b>${nm(id)}</b>${cur.side === k ? h`<span className="badge sb-srv">서브</span>` : null}</div>`;
     const topCol = (k, id, cs) => h`<div className=${cn("sb-col", cur.side === k && "serving")}>${sideName(k, id)}
@@ -439,6 +449,10 @@ return h`<${PE.Dialog} open=${true} onClose=${onClose} wide full>
         <div className="sb-row"><span className="sb-lbl">먼저 서브</span><${PE.Seg} label="먼저 서브" value=${first} onChange=${setFirst} options=${[{ value: "a", label: nm(a) }, { value: "b", label: nm(b) }]} /></div>
         <div className="sb-row"><span className="sb-lbl">서브 방식</span><${PE.Seg} label="서브 방식" value=${rule} onChange=${setRule} options=${[{ value: "alt", label: "몇 점마다 교대" }, { value: "rally", label: "득점하면 서브" }]} />
           ${rule === "alt" ? h`<${PE.NumStepper} label="교대 점수" min=${1} max=${20} value=${n} onChange=${setN} />` : null}</div>
+        ${!wdl ? h`<div className="sb-row"><span className="sb-lbl">패널티</span><${PE.Seg} label="패널티" value=${pen.on ? "on" : "off"} onChange=${(v) => setPen({ ...pen, on: v === "on" })} options=${[{ value: "off", label: "없음" }, { value: "on", label: "있음" }]} /></div>
+        ${pen.on ? h`<div className="sb-pen"><span className="card-sub">경기를 시작할 때 미리 주는 점수예요${sets ? " (세트마다 적용)" : ""}.</span>
+          <div className="sb-row"><span className="sb-lbl sb-pn">${nm(a)}</span><${PE.NumStepper} label=${nm(a) + " 시작 점수"} min=${0} max=${30} value=${pen.a} onChange=${(v) => setPen({ ...pen, a: v })} /></div>
+          <div className="sb-row"><span className="sb-lbl sb-pn">${nm(b)}</span><${PE.NumStepper} label=${nm(b) + " 시작 점수"} min=${0} max=${30} value=${pen.b} onChange=${(v) => setPen({ ...pen, b: v })} /></div></div>` : null}` : null}
         ${orderBox(a, oa, setOa)}${orderBox(b, ob, setOb)}</div>` : null}
       ${step === 3 && c ? h`<div className="sb-board">
         <div className="sb-top">${topCol("a", a, ca)}${topCol("b", b, cb)}</div>

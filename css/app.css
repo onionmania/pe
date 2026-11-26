@@ -1331,4 +1331,13 @@ form.field-row { grid-template-columns: minmax(0, 1fr) 40px; }
 .topbar, .topbar * { white-space: nowrap; } .topnav { flex: none; } .topnav a { flex: none; }
 @media (max-width: 1280px) { .topnav a { padding: 0 10px; gap: 6px; } .topnav { margin-left: var(--sp-2); gap: 2px; } }
 @media (max-width: 1160px) { .brand b { display: none; } .topnav a svg { display: none; } .topnav a { padding: 0 9px; } }
-.pc-scroll { max-height: 300px; overflow-y: auto; padding-right: 4px; }
+
+/* 평가 점수 칸: 글자 수만큼만 */
+.ev-t .step-in { width: auto; min-width: 0; padding: 0 2px; text-align: center; box-sizing: content-box; }
+/* 점수판: 서브 순서 */
+.sb-oc { position: relative; } .sb-oc .sb-no { font-style: normal; }
+.sb-no.ph { background: transparent; border: 1.5px dashed var(--border-strong); color: transparent; box-sizing: border-box; }
+.sb-pen { display: grid; gap: 8px; padding: 10px 12px; border: var(--border-w) dashed var(--border-strong); border-radius: var(--radius); } .sb-pen .sb-pn { min-width: 64px; width: auto; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 점수 입력 칸 -10% → 서브 순서 +10% */
+.sb-taps { flex: 9 1 0; min-height: 180px; } .sb-mid { flex: 1 1 auto; min-height: 100px; }
+.sb-mid .sb-now { font-size: 25px; } .sb-mid .sb-now.wait, .sb-mid .sb-now.solo { font-size: 20px; } .sb-mid .sb-ctx { font-size: 13px; }

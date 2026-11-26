@@ -49,7 +49,7 @@
   function ProgressCard({ icon, title, rows, values, empty, tone, wide }) {
     return h`<section className="card">
       <div className="card-head tight"><div className="card-title"><span className="ico sm">${I(icon)}</span>${title}</div></div>
-      ${rows.length === 0 && empty ? h`<p className="empty-note" style=${{ marginTop: 0 }}>${empty}</p>` : rows.length === 0 ? h`<p className="empty-note" style=${{ marginTop: 0 }}><a href="#settings" style=${{ color: "var(--primary)", fontWeight: 700 }}>기본 설정</a>에서 담당 학급을 골라 주세요.</p>` : h`<div className=${wide ? "pc-scroll" : ""}>${rows.map((r) => {
+      ${rows.length === 0 && empty ? h`<p className="empty-note" style=${{ marginTop: 0 }}>${empty}</p>` : rows.length === 0 ? h`<p className="empty-note" style=${{ marginTop: 0 }}><a href="#settings" style=${{ color: "var(--primary)", fontWeight: 700 }}>기본 설정</a>에서 담당 학급을 골라 주세요.</p>` : h`<div>${rows.map((r) => {
         const v = values ? values[r.id] : null;
         return h`<div className=${"grade-row" + (wide ? " wide" : "")} key=${r.id}><span className="g num" title=${r.label}>${r.label}</span>
           <${PE.Bar} size="sm" tone=${tone} pct=${v == null ? 0 : v} label=${r.label + " " + title} /><span className="v num">${v == null ? "—" : v + "%"}</span></div>`; })}</div>`}
