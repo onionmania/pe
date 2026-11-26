@@ -455,6 +455,7 @@ return h`<${PE.Dialog} open=${true} onClose=${onClose} wide full>
           <${PE.Button} onClick=${onClose}>닫기<//></div></div><//>`;
   }
 
+  PE.compProgress = (x) => { if (x.format === "league") { const t = x.matches.length; return [x.matches.filter((q) => x.res[q.id]).length, t]; } const b = bracket(x); const l = [...b.rounds.flat().filter((q) => !q.bye), ...(b.third ? [b.third] : [])]; return [l.filter((q) => q.res).length, l.length]; };
   /* ---------- 보관함: 꺼내기 · 삭제 ---------- */
   function ArchiveBox({ kept, prog, S, onClose }) {
     const [del, setDel] = useState(null);
@@ -474,7 +475,7 @@ return h`<${PE.Dialog} open=${true} onClose=${onClose} wide full>
     const [box, setBox] = useState(false);
     const live = yd.comps.filter((x) => !x.archived); const kept = yd.comps.filter((x) => x.archived);
     const c = live.find((x) => x.id === sel) || live[0] || null;
-    const prog = (x) => { if (x.format === "league") { const t = x.matches.length; return [x.matches.filter((q) => x.res[q.id]).length, t]; } const b = bracket(x); const l = [...b.rounds.flat().filter((q) => !q.bye), ...(b.third ? [b.third] : [])]; return [l.filter((q) => q.res).length, l.length]; };
+    const prog = PE.compProgress;
     return h`<div className="page">
       <div className="roster-bar">
         <div className="club-chips six">${live.map((x) => { const [p, t] = prog(x); const pct = t ? Math.round((p / t) * 100) : 0; return h`<button key=${x.id} type="button" className="club-chip" aria-pressed=${c && c.id === x.id} onClick=${() => setSel(x.id)}>

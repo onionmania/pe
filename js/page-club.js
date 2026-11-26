@@ -131,7 +131,7 @@
     const club = yd.clubs.find((c) => c.id === sel) || yd.clubs[0] || null;
     return h`<div className="page">
       <div className="roster-bar">
-        <div className="club-chips">${yd.clubs.map((c) => h`<button key=${c.id} type="button" className="club-chip" aria-pressed=${club && club.id === c.id} onClick=${() => setSel(c.id)}>
+        <div className="club-chips six">${yd.clubs.map((c) => h`<button key=${c.id} type="button" className="club-chip" aria-pressed=${club && club.id === c.id} onClick=${() => setSel(c.id)}>
           <span className="cc-top">${c.time ? h`<span className="badge">${c.time}</span>` : null}<b>${c.name}</b></span>
           <span className="cc-bar"><${PE.Bar} pct=${pctOf(c)} label="운영 진행률" /><em className="num">${pctOf(c)}%</em></span></button>`)}</div>
         <${PE.Button} size="sm" variant="primary" onClick=${() => setWiz(true)}>${I("plus")} 클럽 개설<//></div>

@@ -46,12 +46,12 @@
     </section>`;
   }
 
-  function ProgressCard({ icon, title, rows, values, empty, tone }) {
+  function ProgressCard({ icon, title, rows, values, empty, tone, wide }) {
     return h`<section className="card">
       <div className="card-head tight"><div className="card-title"><span className="ico sm">${I(icon)}</span>${title}</div></div>
-      ${rows.length === 0 ? h`<p className="empty-note" style=${{ marginTop: 0 }}><a href="#settings" style=${{ color: "var(--primary)", fontWeight: 700 }}>기본 설정</a>에서 담당 학급을 골라 주세요.</p>` : h`<div>${rows.map((r) => {
+      ${rows.length === 0 && empty ? h`<p className="empty-note" style=${{ marginTop: 0 }}>${empty}</p>` : rows.length === 0 ? h`<p className="empty-note" style=${{ marginTop: 0 }}><a href="#settings" style=${{ color: "var(--primary)", fontWeight: 700 }}>기본 설정</a>에서 담당 학급을 골라 주세요.</p>` : h`<div className=${wide ? "pc-scroll" : ""}>${rows.map((r) => {
         const v = values ? values[r.id] : null;
-        return h`<div className="grade-row" key=${r.id}><span className="g num">${r.label}</span>
+        return h`<div className=${"grade-row" + (wide ? " wide" : "")} key=${r.id}><span className="g num" title=${r.label}>${r.label}</span>
           <${PE.Bar} size="sm" tone=${tone} pct=${v == null ? 0 : v} label=${r.label + " " + title} /><span className="v num">${v == null ? "—" : v + "%"}</span></div>`; })}</div>`}
       ${values || !empty ? null : h`<div className="empty-note">${empty}</div>`}
     </section>`;
@@ -68,12 +68,15 @@
     const lesson = {}; let any = false;
     for (const r of rows) { let p = 0, d = 0; for (const k of r.keys) { const e = stats[k]; if (e) { p += e.planned; d += e.done; } } if (p) { lesson[r.id] = Math.round((d / p) * 100); any = true; } }
     const fake = (seed) => { const o = {}; rows.forEach((r, i) => (o[r.id] = Math.min(100, Math.max(8, Math.round(seed + (i % 2 ? -9 : 7) * ((i % 4) + 1) * 0.8))))); return o; };
+    const live = yd.comps.filter((x) => !x.archived); const compRows = live.map((x) => ({ id: x.id, label: x.name })); const compVals = {};
+    for (const x of live) { try { const [p, t] = PE.compProgress(x); compVals[x.id] = t ? Math.round((p / t) * 100) : 0; } catch (e) { compVals[x.id] = 0; } }
     return h`<div className="page dash">
       <div className="grid-2 dash-top"><${Hero} yd=${yd} year=${state.year} which=${which} setView=${setView} today=${today} /><${TodayCard} yd=${yd} today=${today} /></div>
-      <div className="grid-3">
+      <div className="grid-4">
         <${ProgressCard} icon="clock" title="수업 진행" rows=${rows} values=${demo ? fake(58) : any ? lesson : null} />
         <${ProgressCard} icon="activity" title="PAPS" rows=${rows} values=${demo ? fake(36) : null} tone="accent" />
         <${ProgressCard} icon="clipboard" title="평가" rows=${rows} values=${demo ? fake(72) : (() => { const o = {}; let any2 = false; for (const r of rows) { const v = PE.evalProgress(yd, r.keys); if (v != null) { o[r.id] = v; any2 = true; } } return any2 ? o : null; })()} />
+        <${ProgressCard} icon="trophy" title="대회" rows=${compRows} values=${demo ? null : compVals} wide empty="진행 중인 대회가 없어요." />
       </div></div>`;
   }
   PE.pages = PE.pages || {};

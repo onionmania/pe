@@ -30,7 +30,7 @@
   const norm = (e) => ({ items: (e && e.items) || [], data: (e && e.data) || {} });
 
   function ItemsDialog({ open, onClose, ev, grades, upd }) {
-    const [nm, setNm] = useState(""); const [kind, setKind] = useState("level"); const [gs, setGs] = useState([]); const [del, setDel] = useState(null); const [toMemo, setToMemo] = useState(null);
+    const [nm, setNm] = useState(""); const [kind, setKind] = useState("level"); const [gs, setGs] = useState([]); const [del, setDel] = useState(null);
     const add = () => { const v = nm.trim(); if (!v) return; upd((e) => ({ ...e, items: [...e.items, { id: PE.uid(), name: v, kind, grades: gs }] })); setNm(""); };
     const patch = (id, p) => upd((e) => ({ ...e, items: e.items.map((x) => (x.id === id ? { ...x, ...p } : x)) }));
     const gchips = (val, set) => h`<div className="cc-row ev-gs">${grades.map((g) => h`<button key=${g} type="button" className="cc" style=${{ "--tag": PE.GRADE_COLORS[g] }} aria-pressed=${val.includes(g)} onClick=${() => set(val.includes(g) ? val.filter((x) => x !== g) : [...val, g])}>${g}학년</button>`)}</div>`;
@@ -43,16 +43,13 @@
       <div className="ev-items">${ev.items.map((it) => h`<div key=${it.id} className="ev-item">
           <div className="ev-item-top"><input className="input" aria-label="항목 이름" value=${it.name} onChange=${(e) => patch(it.id, { name: e.target.value })} onBlur=${(e) => { if (!e.target.value.trim()) patch(it.id, { name: "항목" }); }} />
             <span className="badge">${(KINDS.find((k) => k.value === it.kind) || KINDS[0]).label}</span>
-            ${it.kind !== "text" ? h`<${PE.Button} variant="ghost" aria-label=${it.name + " 메모로 바꾸기"} onClick=${() => setToMemo(it)}>메모로 바꾸기<//>` : null}
             <${PE.Button} icon variant="ghost" aria-label=${it.name + (it.hidden ? " 보이기" : " 숨기기")} onClick=${() => patch(it.id, { hidden: !it.hidden })}>${I(it.hidden ? "eyeoff" : "eye")}<//>
             <${PE.Button} icon variant="ghost" aria-label=${it.name + " 삭제"} onClick=${() => setDel(it)}>${I("trash")}<//></div>
           ${gchips(it.grades || [], (v) => patch(it.id, { grades: v }))}</div>`)}
         ${!ev.items.length ? h`<p className="card-sub">아직 항목이 없어요. 아래에서 만들어 주세요.</p>` : null}</div>
       <div className="dialog-foot"><div></div><${PE.Button} variant="primary" onClick=${onClose}>완료<//></div>
-      <${PE.ConfirmDialog} open=${!!toMemo} title=${toMemo ? `‘${toMemo.name}’ 항목을 메모로 바꿀까요?` : ""} body="입력된 값은 그대로 남고, 이제 글자도 쓸 수 있어요. 메모는 점수나 4단계로 되돌릴 수 없어요." confirmLabel="메모로 바꾸기" onClose=${() => setToMemo(null)}
-        onConfirm=${() => { const id = toMemo.id; upd((e) => { const data = {}; for (const [sid, v] of Object.entries(e.data)) { const r = { ...v }; if (r[id] != null) r[id] = String(LEGACY[r[id]] || r[id]); data[sid] = r; } return { items: e.items.map((x) => { if (x.id !== id) return x; const { conv: _c, ...rest } = x; return { ...rest, kind: "text" }; }), data }; }); setToMemo(null); }} />
       <${PE.ConfirmDialog} open=${!!del} danger title=${del ? `‘${del.name}’ 항목을 삭제할까요?` : ""} body="이 항목에 입력된 기록이 모든 반에서 함께 삭제돼요." confirmLabel="삭제" onClose=${() => setDel(null)}
-        onConfirm=${() => { const id = del.id; upd((e) => { const data = {}; for (const [sid, v] of Object.entries(e.data)) { const { [id]: _x, ...rest } = v; data[sid] = rest; } return { items: e.items.filter((x) => x.id !== id), data }; }); setDel(null); }} /><//>`;
+        onConfirm=${() => { const id = del.id; upd((e) => { const data = {}; for (const [sid, v] of Object.entries(e.data)) { const { [id]: _x, [id + "~"]: _y, ...rest } = v; data[sid] = rest; } return { items: e.items.filter((x) => x.id !== id), data }; }); setDel(null); }} /><//>`;
   }
 
   function Cell({ it, v, onSet }) {
@@ -143,6 +140,13 @@
         <div><${PE.Button} onClick=${onClose}>취소<//><${PE.Button} variant="primary" disabled=${bad || rBad || holes.length > 0 || !total} onClick=${() => onApply({ ...cv, on: true })}>변환하기<//></div></div><//>`;
   }
 
+  /* 칸 표시: 점수·4단계 옆에서 눌러 결석 → 1회만 → 재시험 → 해제 (기록 값은 따로 두 번째 키 "항목id~"에 저장) */
+  const MARKS = ["결석", "1회만", "재시험"];
+  function MarkBtn({ it, v, onSet }) {
+    const i = MARKS.indexOf(v);
+    return h`<button type="button" tabIndex="-1" className=${cn("ev-mk", i >= 0 && "on m" + i)} title=${(i >= 0 ? v + " · " : "") + "눌러서 표시: 결석 → 1회만 → 재시험 → 해제"} aria-label=${it.name + " 표시 " + (i >= 0 ? v : "없음")} onClick=${() => onSet(i + 1 < MARKS.length ? MARKS[i + 1] : i < 0 ? MARKS[0] : "")}>${i >= 0 ? v : I("flag")}</button>`;
+  }
+
   function ClassPanel({ cls, students, items, data, setVal, setConv, multi }) {
     const list = useMemo(() => students.filter((x) => x.grade === cls.grade && x.klass === cls.klass).sort((a, b) => a.number - b.number), [students, cls.key]);
     const its = items.filter((it) => !it.hidden && (!(it.grades || []).length || it.grades.includes(cls.grade)));
@@ -151,7 +155,9 @@
     const convOf = (it) => (it.kind === "score" && it.conv && it.conv[cls.key]) || null;
     const lvMaps = {}; its.forEach((it) => { const cv = convOf(it); if (cv && cv.on) lvMaps[it.id] = levelsFor(list.map((x) => ({ id: x.id, v: (data[x.id] || {})[it.id] })), cv); });
     const cvIt = its.find((it) => it.id === cvId);
-    const cell = (x, it, i) => { const v = (data[x.id] || {})[it.id]; const cv = convOf(it);
+    const cell = (x, it, i) => { const inner = cell0(x, it, i); if (it.kind === "text") return inner; const m = (data[x.id] || {})[it.id + "~"];
+      return h`<div className=${cn("ev-cw", m && "marked")}>${inner}<${MarkBtn} it=${it} v=${m} onSet=${(val) => setVal(x.id, it.id + "~", val)} /></div>`; };
+    const cell0 = (x, it, i) => { const v = (data[x.id] || {})[it.id]; const cv = convOf(it);
       if (!cv) return h`<${Cell} it=${it} v=${v} onSet=${(val) => setVal(x.id, it.id, val)} />`;
       const on = !!cv.on; const k = on ? lvMaps[it.id].get(x.id) : undefined;
       return h`<div className=${cn("flip", on && "on")} style=${{ "--i": i }}><div className="flip-in"><div className="face f"><${Cell} it=${it} v=${v} onSet=${(val) => setVal(x.id, it.id, val)} /></div>
