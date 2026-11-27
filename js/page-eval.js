@@ -87,7 +87,7 @@
     const bump = (d) => onChange(String(Math.min(max, Math.max(0, Math.round(((Number.isFinite(cur) ? cur : 0) + d * step) * 10) / 10))));
     return h`<div className=${cn("stepper dec", bad && "bad")} role="group" aria-label=${label}>
       <button type="button" tabIndex="-1" aria-label="줄이기" disabled=${Number.isFinite(cur) && cur <= 0} onClick=${() => bump(-1)}>${I("minus")}</button>
-      <input className="num step-in" style=${{ width: `calc(${Math.max(1, String(txt != null ? txt : cur == null ? "" : cur).length)}ch + 14px)` }} inputMode="decimal" aria-label=${label} value=${value} onFocus=${(e) => e.target.select()}
+      <input className="num step-in" inputMode="decimal" aria-label=${label} value=${value} onFocus=${(e) => e.target.select()}
         onChange=${(e) => { const t = e.target.value.replace(/[^\d.]/g, ""); if ((t.match(/\./g) || []).length > 1) return; const [a, b] = t.split("."); onChange(b == null ? a.slice(0, 3) : a.slice(0, 3) + "." + b.slice(0, 1)); }}
         onKeyDown=${(e) => { if (e.key === "Enter") { e.preventDefault(); e.target.blur(); } }} />
       <button type="button" tabIndex="-1" aria-label="늘리기" disabled=${Number.isFinite(cur) && cur >= max} onClick=${() => bump(1)}>${I("plus")}</button></div>`;
@@ -166,8 +166,8 @@
       return h`<button type="button" className="th-btn" title="눌러서 점수를 4단계로 바꿔 보기" onClick=${() => setCvId(it.id)}>${it.name}${I("swap")}${cv && cv.on ? h`<em>4단계</em>` : null}</button>`; };
     return h`<section className=${cn("card roster-panel", multi && "multi")} style=${{ "--tag": PE.GRADE_COLORS[cls.grade] }}>
       <div className="card-head tight"><div className="card-title"><span className="rp-dot"></span>${cls.grade}학년 ${cls.klass}반 <span className="card-sub num">${list.length}명${its.length ? ` · 입력 ${filled}%` : ""}</span></div></div>
-      ${!list.length ? h`<p className="card-sub">명렬표에 학생이 없어요.</p>` : !its.length ? h`<p className="card-sub">이 학년에 해당하는 평가 항목이 없어요. ‘항목 관리’에서 만들어 주세요.</p>` : h`<div className="paps-scroll"><table className="ev-t"><thead><tr><th>번호</th><th className="l">이름</th>${its.map((it) => h`<th key=${it.id}>${head(it)}</th>`)}</tr></thead>
-        <tbody>${list.map((x, i) => h`<tr key=${x.id}><td className="num">${x.number}</td><td className="l"><b><${PE.Nm} name=${x.name} /></b></td>${its.map((it) => h`<td key=${it.id} className=${"k-" + it.kind}>${cell(x, it, i)}</td>`)}</tr>`)}</tbody></table></div>`}
+      ${!list.length ? h`<p className="card-sub">명렬표에 학생이 없어요.</p>` : !its.length ? h`<p className="card-sub">이 학년에 해당하는 평가 항목이 없어요. ‘항목 관리’에서 만들어 주세요.</p>` : h`<div className="paps-scroll"><table className="ev-t"><thead><tr><th>번호</th><th className="l">이름</th><th>성별</th>${its.map((it) => h`<th key=${it.id}>${head(it)}</th>`)}</tr></thead>
+        <tbody>${list.map((x, i) => h`<tr key=${x.id}><td className="num">${x.number}</td><td className="l"><b><${PE.Nm} name=${x.name} /></b></td><td><span className=${"g-pill " + x.gender}>${x.gender === "M" ? "남" : x.gender === "F" ? "여" : "–"}</span></td>${its.map((it) => h`<td key=${it.id} className=${"k-" + it.kind}>${cell(x, it, i)}</td>`)}</tr>`)}</tbody></table></div>`}
       ${cvIt ? h`<${ConvDialog} it=${cvIt} title=${`${cls.grade}학년 ${cls.klass}반`} rows=${list.map((x) => ({ id: x.id, v: (data[x.id] || {})[cvIt.id] }))} conv=${convOf(cvIt)} onClose=${() => setCvId(null)}
         onApply=${(cv) => { setConv(cvIt.id, cls.key, cv); setCvId(null); }} onOff=${() => { setConv(cvIt.id, cls.key, { ...convOf(cvIt), on: false }); setCvId(null); }} />` : null}</section>`;
   }

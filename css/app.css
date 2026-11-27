@@ -1356,3 +1356,9 @@ form.field-row { grid-template-columns: minmax(0, 1fr) 40px; }
   .comp-chips .bl { display: none; } .comp-chips .bs { display: inline; }
   .comp-btns { grid-template-columns: repeat(3, minmax(0, 1fr)); } .comp-btns .btn { padding-left: 6px; padding-right: 6px; white-space: nowrap; }
 }
+
+/* 평가·명렬표: 이름 옆에 붙여서 가운데 정렬 */
+.ev-t { width: auto; max-width: 100%; } .ev-t th, .ev-t td { text-align: center; padding-left: 10px; padding-right: 10px; } .ev-t .l, .ev-t th.l { text-align: center; width: auto; }
+.ev-t th:not(.l) { width: auto; } .ev-t td .g-pill { display: inline-block; justify-self: auto; }
+.k-text .ev-in { width: 200px; max-width: none; }
+@media (max-width: 600px) { .k-text .ev-in { width: 150px; } .ev-t th, .ev-t td { padding-left: 7px; padding-right: 7px; } }

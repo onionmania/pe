@@ -133,7 +133,7 @@
     const fields = allFields.filter((f) => !f.hidden);
     const dupOf = (x) => { const d = dupMap.get(x.name.trim()); return d && d.length > 1 ? d.filter((k) => k.id !== x.id) : null; };
     const slots = list.reduce((m, x) => Math.max(m, (dupOf(x) ? 1 : 0) + (x.foreign ? 1 : 0)), 0);
-    const style = { "--slot": slots * 17 + "px", "--gt": `40px fit-content(180px) ${hideGender ? "" : "40px "}${fields.map(() => "minmax(0, 1fr)").join(" ")}` };
+    const style = { "--slot": slots * 17 + "px", "--gt": `40px fit-content(180px) ${hideGender ? "" : "40px "}${fields.map(() => "fit-content(260px)").join(" ")}` };
     return h`<section className=${cn("card roster-panel", multi && "multi")} style=${{ "--tag": PE.GRADE_COLORS[cls.grade] }}>
       <div className="card-head tight">
         <div className="card-title"><span className="rp-dot"></span>${cls.grade}학년 ${cls.klass}반 <span className="card-sub num">${list.length}명${boys || girls ? ` · 남 ${boys} · 여 ${girls}` : ""}</span></div>
