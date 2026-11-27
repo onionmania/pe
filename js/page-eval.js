@@ -3,7 +3,7 @@
   const PE = window.PE, React = window.React, h = PE.h, cn = PE.cn, I = PE.I;
   const { useState, useMemo } = React;
   const COLS = [{ value: 1, label: "1반 보기", icon: "grid" }, { value: 2, label: "2반 보기", icon: "grid" }, { value: 3, label: "3반 보기", icon: "grid" }, { value: 4, label: "4반 보기", icon: "grid" }];
-  const KINDS = [{ value: "level", label: "4단계" }, { value: "score", label: "점수" }, { value: "text", label: "메모" }];
+  const KINDS = [{ value: "level", label: "4단계" }, { value: "score", label: "숫자" }, { value: "text", label: "메모" }];
   const LV = ["매우", "잘함", "보통", "노력"];
   const LV_FULL = ["매우잘함", "잘함", "보통", "노력요함"];
   const LEGACY = { 상: "매우", 중: "보통", 하: "노력" };
@@ -16,14 +16,15 @@
     if (el) { el.focus(); if (el.select) el.select(); } else e.target.blur();
   };
   const onEnter = (e) => { if (e.key === "Enter") goDown(e); };
+  const MAXV = 9999999999;
   function ScoreCell({ it, v, onSet }) {
     const [txt, setTxt] = useState(null); const cur = v === "" || v == null ? null : Number(v);
-    const commit = () => { if (txt == null) return; setTxt(null); if (txt === "" || txt === ".") onSet(""); else { const n = Number(txt); if (Number.isFinite(n)) onSet(Math.min(999, Math.max(0, n))); } };
-    const bump = (d) => onSet(Math.min(999, Math.max(0, Math.round(((cur || 0) + d) * 100) / 100)));
+    const commit = () => { if (txt == null) return; setTxt(null); if (txt === "" || txt === ".") onSet(""); else { const n = Number(txt); if (Number.isFinite(n)) onSet(Math.min(MAXV, Math.max(0, n))); } };
+    const bump = (d) => onSet(Math.min(MAXV, Math.max(0, Math.round(((cur || 0) + d) * 100) / 100)));
     return h`<div className="stepper ev-st" role="group" aria-label=${it.name}>
       <button type="button" tabIndex="-1" aria-label="줄이기" disabled=${cur == null || cur <= 0} onClick=${() => bump(-1)}>${I("minus")}</button>
       <input className="num step-in" style=${{ width: `calc(${Math.max(1, String(txt != null ? txt : cur == null ? "" : cur).length)}ch + 14px)` }} inputMode="decimal" enterKeyHint="next" aria-label=${it.name} value=${txt != null ? txt : cur == null ? "" : cur} onFocus=${(e) => e.target.select()}
-        onChange=${(e) => { const t = e.target.value.replace(/[^\d.]/g, ""); if ((t.match(/\./g) || []).length <= 1) { const [a, b] = t.split("."); setTxt(b == null ? a.slice(0, 3) : a.slice(0, 3) + "." + b.slice(0, 1)); } }} onBlur=${commit}
+        onChange=${(e) => { const t = e.target.value.replace(/[^\d.]/g, ""); if ((t.match(/\./g) || []).length <= 1) { const [a, b] = t.split("."); setTxt(b == null ? a.slice(0, 10) : a.slice(0, 10) + "." + b.slice(0, 1)); } }} onBlur=${commit}
         onKeyDown=${(e) => { if (e.key === "Enter") { commit(); goDown(e); } }} />
       <button type="button" tabIndex="-1" aria-label="늘리기" onClick=${() => bump(1)}>${I("plus")}</button></div>`;
   }
@@ -166,7 +167,7 @@
     const head = (it) => { const lk = lockOf(it);
       const lockBtn = h`<button type="button" className=${cn("th-lock", lk && "on")} aria-pressed=${lk} title=${lk ? "잠금 해제" : "잠그기 (수정 못 하게)"} aria-label=${it.name + (lk ? " 잠금 해제" : " 잠그기")} onClick=${() => setLock(it.id, cls.key, !lk)}>${I(lk ? "lock" : "unlock")}</button>`;
       if (it.kind !== "score") return h`<span className="th-w">${it.name}${lockBtn}</span>`; const cv = convOf(it);
-      return h`<span className="th-w"><button type="button" className="th-btn" title="눌러서 점수를 4단계로 바꿔 보기" onClick=${() => setCvId(it.id)}>${it.name}${I("swap")}${cv && cv.on ? h`<em>4단계</em>` : null}</button>${lockBtn}</span>`; };
+      return h`<span className="th-w">${it.name}<button type="button" className="th-lock th-cv" title="눌러서 숫자를 4단계로 바꿔 보기" aria-label=${it.name + " 4단계로 변환"} onClick=${() => setCvId(it.id)}>${I("swap")}</button>${cv && cv.on ? h`<em className="th-em">4단계</em>` : null}${lockBtn}</span>`; };
     return h`<section className=${cn("card roster-panel", multi && "multi")} style=${{ "--tag": PE.GRADE_COLORS[cls.grade] }}>
       <div className="card-head tight"><div className="card-title"><span className="rp-dot"></span>${cls.grade}학년 ${cls.klass}반 <span className="card-sub num">${list.length}명${its.length ? ` · 입력 ${filled}%` : ""}</span></div></div>
       ${!list.length ? h`<p className="card-sub">명렬표에 학생이 없어요.</p>` : !its.length ? h`<p className="card-sub">이 학년에 해당하는 평가 항목이 없어요. ‘항목 관리’에서 만들어 주세요.</p>` : h`<div className="paps-scroll"><table className=${cn("ev-t", nostep && "nostep")}><thead><tr><th>번호</th><th className="l">이름</th><th>성별</th>${its.map((it) => h`<th key=${it.id}>${head(it)}</th>`)}</tr></thead>
@@ -199,6 +200,13 @@
       <${ItemsDialog} open=${open} onClose=${() => setOpen(false)} ev=${ev} grades=${grades} upd=${upd} />
     </div>`;
   }
+  /* 대시보드용: 한 반에서 아직 입력 안 된 항목·학생 */
+  PE.evalMissing = (yd, key) => { const ev = norm(yd.evals); const [g, kl] = key.split("-").map(Number);
+    const its = ev.items.filter((it) => !it.hidden && (!(it.grades || []).length || it.grades.includes(g)));
+    const st = yd.students.filter((x) => x.grade === g && x.klass === kl).sort((a, b) => a.number - b.number);
+    const parts = its.map((it) => ({ name: it.name, missing: st.filter((x) => { const v = (ev.data[x.id] || {})[it.id]; return v === "" || v == null; }) }));
+    const total = st.length * its.length; const miss = parts.reduce((s, p) => s + p.missing.length, 0);
+    return { students: st.length, total, filled: total - miss, parts: parts.filter((p) => p.missing.length) }; };
   PE.evalProgress = (yd, keys) => { const ev = norm(yd.evals); let f = 0, t = 0;
     for (const k of keys) { const [g, kl] = k.split("-").map(Number); const its = ev.items.filter((it) => !it.hidden && (!(it.grades || []).length || it.grades.includes(g))); const st = yd.students.filter((x) => x.grade === g && x.klass === kl);
       t += its.length * st.length; for (const x of st) for (const it of its) { const v = (ev.data[x.id] || {})[it.id]; if (v !== "" && v != null) f++; } }

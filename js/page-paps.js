@@ -229,6 +229,13 @@
       <${PapsImport} open=${imp} onClose=${() => setImp(false)} students=${yd.students} classes=${classes} preset=${shown.length ? shown : keys.slice(0, 1)} onTemplate=${doTemplate} onApply=${(by) => S.setPapsBulk(sem, by)} />
     </div>`;
   }
+  /* 대시보드용: 한 반에서 아직 측정 안 된 체력요소·학생 (체력요소 4개 + 신장·체중) */
+  PE.papsMissing = (yd, sem, key) => { const P = PE.normPaps(yd.paps).s[sem]; const items = P.items; const [g, kl] = key.split("-").map(Number);
+    const st = yd.students.filter((x) => x.grade === g && x.klass === kl).sort((a, b) => a.number - b.number);
+    const defs = [...ELEMENTS.map((el) => ({ name: LABEL[items[el.key]] || el.name, has: (rec) => bestOf(items[el.key], rec) != null })), { name: "신장·체중", has: (rec) => Number(rec.height) > 0 && Number(rec.weight) > 0 }];
+    const parts = defs.map((d) => ({ name: d.name, missing: st.filter((x) => !d.has(P.rec[x.id] || {})) }));
+    const total = st.length * defs.length; const miss = parts.reduce((s, q) => s + q.missing.length, 0);
+    return { students: st.length, total, filled: total - miss, parts: parts.filter((q) => q.missing.length) }; };
   PE.pages = PE.pages || {};
   PE.pages.paps = Paps;
 })();
