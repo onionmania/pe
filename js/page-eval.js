@@ -144,10 +144,10 @@
   const MARKS = ["재시험"];
   function MarkBtn({ it, v, onSet }) {
     const i = MARKS.indexOf(v);
-    return h`<button type="button" tabIndex="-1" className=${cn("ev-mk", i >= 0 && "on m" + i)} title=${(i >= 0 ? v + " · " : "") + "눌러서 재시험 표시 · 다시 누르면 해제"} aria-label=${it.name + " 표시 " + (i >= 0 ? v : "없음")} onClick=${() => onSet(i + 1 < MARKS.length ? MARKS[i + 1] : i < 0 ? MARKS[0] : "")}>${i >= 0 ? v : I("flag")}</button>`;
+    return h`<button type="button" tabIndex="-1" className=${cn("ev-mk", i >= 0 && "on m" + i)} title=${(i >= 0 ? v + " · " : "") + "눌러서 재시험 표시 · 다시 누르면 해제"} aria-label=${it.name + " 표시 " + (i >= 0 ? v : "없음")} onClick=${() => onSet(i + 1 < MARKS.length ? MARKS[i + 1] : i < 0 ? MARKS[0] : "")}>${i >= 0 ? "재" : I("flag")}</button>`;
   }
 
-  function ClassPanel({ cls, students, items, data, setVal, setConv, multi }) {
+  function ClassPanel({ cls, students, items, data, setVal, setConv, setLock, nostep, multi }) {
     const list = useMemo(() => students.filter((x) => x.grade === cls.grade && x.klass === cls.klass).sort((a, b) => a.number - b.number), [students, cls.key]);
     const its = items.filter((it) => !it.hidden && (!(it.grades || []).length || it.grades.includes(cls.grade)));
     const [cvId, setCvId] = useState(null);
@@ -155,18 +155,21 @@
     const convOf = (it) => (it.kind === "score" && it.conv && it.conv[cls.key]) || null;
     const lvMaps = {}; its.forEach((it) => { const cv = convOf(it); if (cv && cv.on) lvMaps[it.id] = levelsFor(list.map((x) => ({ id: x.id, v: (data[x.id] || {})[it.id] })), cv); });
     const cvIt = its.find((it) => it.id === cvId);
-    const cell = (x, it, i) => { const inner = cell0(x, it, i); if (it.kind === "text") return inner; const m = (data[x.id] || {})[it.id + "~"];
-      return h`<div className=${cn("ev-cw", m && "marked")}>${inner}<${MarkBtn} it=${it} v=${m} onSet=${(val) => setVal(x.id, it.id + "~", val)} /></div>`; };
+    const cell = (x, it, i) => { const inner = cell0(x, it, i); if (it.kind === "text") return h`<div className=${cn("ev-cw", lockOf(it) && "locked")} ref=${(el) => { if (el) el.inert = lockOf(it); }}>${inner}</div>`; const m = (data[x.id] || {})[it.id + "~"];
+      return h`<div className=${cn("ev-cw", m && "marked", lockOf(it) && "locked")} ref=${(el) => { if (el) el.inert = lockOf(it); }}>${inner}<${MarkBtn} it=${it} v=${m} onSet=${(val) => setVal(x.id, it.id + "~", val)} /></div>`; };
     const cell0 = (x, it, i) => { const v = (data[x.id] || {})[it.id]; const cv = convOf(it);
       if (!cv) return h`<${Cell} it=${it} v=${v} onSet=${(val) => setVal(x.id, it.id, val)} />`;
       const on = !!cv.on; const k = on ? lvMaps[it.id].get(x.id) : undefined;
       return h`<div className=${cn("flip", on && "on")} style=${{ "--i": i }}><div className="flip-in"><div className="face f"><${Cell} it=${it} v=${v} onSet=${(val) => setVal(x.id, it.id, val)} /></div>
         <button type="button" tabIndex="-1" className=${cn("face b ev-lv", k != null && "lv" + k)} title="눌러서 원래 점수 보기" aria-label=${on ? (k != null ? LV_FULL[k] : "기록 없음") : undefined} onClick=${() => setConv(it.id, cls.key, { ...cv, on: false })}>${k != null ? LV[k] : h`<em>–</em>`}</button></div></div>`; };
-    const head = (it) => { if (it.kind !== "score") return it.name; const cv = convOf(it);
-      return h`<button type="button" className="th-btn" title="눌러서 점수를 4단계로 바꿔 보기" onClick=${() => setCvId(it.id)}>${it.name}${I("swap")}${cv && cv.on ? h`<em>4단계</em>` : null}</button>`; };
+    const lockOf = (it) => !!(it.lock && it.lock[cls.key]);
+    const head = (it) => { const lk = lockOf(it);
+      const lockBtn = h`<button type="button" className=${cn("th-lock", lk && "on")} aria-pressed=${lk} title=${lk ? "잠금 해제" : "잠그기 (수정 못 하게)"} aria-label=${it.name + (lk ? " 잠금 해제" : " 잠그기")} onClick=${() => setLock(it.id, cls.key, !lk)}>${I(lk ? "lock" : "unlock")}</button>`;
+      if (it.kind !== "score") return h`<span className="th-w">${it.name}${lockBtn}</span>`; const cv = convOf(it);
+      return h`<span className="th-w"><button type="button" className="th-btn" title="눌러서 점수를 4단계로 바꿔 보기" onClick=${() => setCvId(it.id)}>${it.name}${I("swap")}${cv && cv.on ? h`<em>4단계</em>` : null}</button>${lockBtn}</span>`; };
     return h`<section className=${cn("card roster-panel", multi && "multi")} style=${{ "--tag": PE.GRADE_COLORS[cls.grade] }}>
       <div className="card-head tight"><div className="card-title"><span className="rp-dot"></span>${cls.grade}학년 ${cls.klass}반 <span className="card-sub num">${list.length}명${its.length ? ` · 입력 ${filled}%` : ""}</span></div></div>
-      ${!list.length ? h`<p className="card-sub">명렬표에 학생이 없어요.</p>` : !its.length ? h`<p className="card-sub">이 학년에 해당하는 평가 항목이 없어요. ‘항목 관리’에서 만들어 주세요.</p>` : h`<div className="paps-scroll"><table className="ev-t"><thead><tr><th>번호</th><th className="l">이름</th><th>성별</th>${its.map((it) => h`<th key=${it.id}>${head(it)}</th>`)}</tr></thead>
+      ${!list.length ? h`<p className="card-sub">명렬표에 학생이 없어요.</p>` : !its.length ? h`<p className="card-sub">이 학년에 해당하는 평가 항목이 없어요. ‘항목 관리’에서 만들어 주세요.</p>` : h`<div className="paps-scroll"><table className=${cn("ev-t", nostep && "nostep")}><thead><tr><th>번호</th><th className="l">이름</th><th>성별</th>${its.map((it) => h`<th key=${it.id}>${head(it)}</th>`)}</tr></thead>
         <tbody>${list.map((x, i) => h`<tr key=${x.id}><td className="num">${x.number}</td><td className="l"><b><${PE.Nm} name=${x.name} /></b></td><td><span className=${"g-pill " + x.gender}>${x.gender === "M" ? "남" : x.gender === "F" ? "여" : "–"}</span></td>${its.map((it) => h`<td key=${it.id} className=${"k-" + it.kind}>${cell(x, it, i)}</td>`)}</tr>`)}</tbody></table></div>`}
       ${cvIt ? h`<${ConvDialog} it=${cvIt} title=${`${cls.grade}학년 ${cls.klass}반`} rows=${list.map((x) => ({ id: x.id, v: (data[x.id] || {})[cvIt.id] }))} conv=${convOf(cvIt)} onClose=${() => setCvId(null)}
         onApply=${(cv) => { setConv(cvIt.id, cls.key, cv); setCvId(null); }} onOff=${() => { setConv(cvIt.id, cls.key, { ...convOf(cvIt), on: false }); setCvId(null); }} />` : null}</section>`;
@@ -180,6 +183,7 @@
     const shown = sel === null ? keys.slice(0, 1) : sel.filter((k) => keys.includes(k));
     const pick = (k) => setSel(shown.includes(k) ? shown.filter((x) => x !== k) : [...shown, k]);
     const upd = (fn) => S.updYear((y) => ({ ...y, evals: fn(norm(y.evals)) }));
+    const setLock = (iid, key, v) => upd((e) => ({ ...e, items: e.items.map((x) => (x.id === iid ? { ...x, lock: { ...(x.lock || {}), [key]: v } } : x)) }));
     const setConv = (iid, key, cv) => upd((e) => ({ ...e, items: e.items.map((x) => (x.id === iid ? { ...x, conv: { ...(x.conv || {}), [key]: cv } } : x)) }));
     const setVal = (sid, iid, v) => upd((e) => ({ ...e, data: { ...e.data, [sid]: { ...(e.data[sid] || {}), [iid]: v } } }));
     const grades = [...new Set(classes.map((c) => c.grade))].sort();
@@ -188,9 +192,10 @@
         <div className="roster-tabs">${classes.map((c) => h`<button key=${c.key} type="button" className="cc roster-tab" aria-pressed=${shown.includes(c.key)} style=${{ "--tag": PE.GRADE_COLORS[c.grade] }} onClick=${() => pick(c.key)}>${c.key}</button>`)}</div>
         <span className="grow"></span>
         <div className="bar-btns"><${PE.Cycle} label="한 화면에 보는 반 수" value=${N} onChange=${(n) => S.setPref("evalCols", n)} options=${COLS} />
+          <button type="button" className="cc" aria-pressed=${S.state.prefs.evalStep !== false} title="점수 칸의 − + 버튼 켜고 끄기" onClick=${() => S.setPref("evalStep", S.state.prefs.evalStep === false)}>− + 버튼</button>
           <${PE.Button} size="sm" onClick=${() => setOpen(true)}>${I("settings")} 항목 관리<//></div></div>
       ${classes.length === 0 ? h`<section className="card"><p className="empty-note" style=${{ marginTop: 0 }}><a href="#settings" style=${{ color: "var(--primary)", fontWeight: 700 }}>기본 설정</a>에서 담당 학급을 먼저 골라 주세요.</p></section>` : null}
-      <div className="roster-grid" style=${{ gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))` }}>${classes.filter((c) => shown.includes(c.key)).map((c) => h`<${ClassPanel} key=${c.key} cls=${c} students=${yd.students} items=${ev.items} data=${ev.data} setVal=${setVal} setConv=${setConv} multi=${N > 1} />`)}</div>
+      <div className="roster-grid" style=${{ gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))` }}>${classes.filter((c) => shown.includes(c.key)).map((c) => h`<${ClassPanel} key=${c.key} cls=${c} students=${yd.students} items=${ev.items} data=${ev.data} setVal=${setVal} setConv=${setConv} setLock=${setLock} nostep=${S.state.prefs.evalStep === false} multi=${N > 1} />`)}</div>
       <${ItemsDialog} open=${open} onClose=${() => setOpen(false)} ev=${ev} grades=${grades} upd=${upd} />
     </div>`;
   }
