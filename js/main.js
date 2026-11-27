@@ -15,13 +15,14 @@
 
   const LOGOS = ["🏃", "⚽", "🏀", "⚾", "🏐", "🏈", "🎾", "🏸", "🏓", "🥎", "🏑", "🥅", "🏅", "🥇", "🏆", "🤸", "🏊", "🚴", "🤾", "⛹️", "🧘", "🎽", "👟", "⏱️"];
   function App() {
+    const emo = (s) => (s.includes("\uFE0F") ? s : s + "\uFE0F");
     const S = PE.useStore(); const r = useRoute();     const [themeOpen, setThemeOpen] = useState(false); const [menuAt, setMenuAt] = useState(null); const [logoAt, setLogoAt] = useState(null); const logo = S.state.prefs.logo || "🏃";
     useEffect(() => { const w = S.state.prefs.width || 2; document.documentElement.style.setProperty("--page-max", w === 1 ? "1200px" : w === 3 ? "100vw" : "1440px"); }, [S.state.prefs.width]);
     const Page = PE.pages[r];
     const link = (n) => h`<a key=${n.to} href=${"#" + n.to} aria-current=${r === n.to ? "page" : undefined}>${I(n.icon)}${n.label}</a>`;
     return h`<div className="app">
       <header className="topbar">
-        <div className="brand"><button type="button" className="brand-mark" data-pop-ignore="1" aria-label="로고 이모지 고르기" title="눌러서 이모지 바꾸기" onClick=${(e) => { const r = e.currentTarget.getBoundingClientRect(); setLogoAt(logoAt ? null : { x: r.left, y: r.bottom }); }}>${logo}</button><a href="#dashboard"><b>체육 워크스페이스</b></a></div>
+        <div className="brand"><button type="button" className="brand-mark" data-pop-ignore="1" aria-label="로고 이모지 고르기" title="눌러서 이모지 바꾸기" onClick=${(e) => { const r = e.currentTarget.getBoundingClientRect(); setLogoAt(logoAt ? null : { x: r.left, y: r.bottom }); }}>${emo(logo)}</button><a href="#dashboard"><b>체육 워크스페이스</b></a></div>
         <nav className="topnav" aria-label="메뉴">${NAV.map(link)}</nav>
         <span className="grow"></span><${PE.SaveBadge} s=${S.saveS} />
         <${PE.Button} icon variant="ghost" data-pop-ignore="1" aria-label="설정" onClick=${(e) => { const r = e.currentTarget.getBoundingClientRect(); setMenuAt(menuAt ? null : { x: r.right, y: r.bottom }); }}>${I("gear")}<//></header>
@@ -29,7 +30,7 @@
       <div className="main"><${Boundary} key=${r}><${Page} /><//></div>
       <nav className="tabbar" aria-label="메뉴">${NAV.map((n) => h`<a key=${n.to} href=${"#" + n.to} aria-current=${r === n.to ? "page" : undefined}>${I(n.icon)}${n.short || n.label}</a>`)}
         <button type="button" className="tab-gear" data-s=${S.saveS} data-pop-ignore="1" aria-label="설정 · 저장 상태" onClick=${(e) => { const b = e.currentTarget.getBoundingClientRect(); setMenuAt(menuAt ? null : { x: b.right, y: b.top }); }}>${I("gear")}<span><i></i>${S.saveS === "saving" ? "저장 중" : S.saveS === "error" ? "실패" : S.saveS === "toobig" ? "용량" : "저장됨"}</span></button></nav>
-      <${PE.Popover} open=${!!logoAt} at=${logoAt} onClose=${() => setLogoAt(null)}><div className="pop-head"><b>로고 이모지</b></div><div className="emoji-grid">${LOGOS.map((e) => h`<button key=${e} type="button" className="emoji-b" aria-pressed=${e === logo} onClick=${() => { S.setPref("logo", e); setLogoAt(null); }}>${e}</button>`)}</div><//>
+      <${PE.Popover} open=${!!logoAt} at=${logoAt} onClose=${() => setLogoAt(null)}><div className="pop-head"><b>로고 이모지</b></div><div className="emoji-grid">${LOGOS.map((e) => h`<button key=${e} type="button" className="emoji-b" aria-pressed=${e === logo} onClick=${() => { S.setPref("logo", e); setLogoAt(null); }}>${emo(e)}</button>`)}</div><//>
       <${PE.SettingsMenu} open=${!!menuAt} at=${menuAt} onClose=${() => setMenuAt(null)} onTheme=${() => { setMenuAt(null); setThemeOpen(true); }} />
       <${PE.SettingsDialog} open=${themeOpen} onClose=${() => setThemeOpen(false)} />
     </div>`;

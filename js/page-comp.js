@@ -338,7 +338,7 @@
             ${!isL ? (() => { const MS = [{ v: "vd", t: "세로 · 하강", i: "rows" }, { v: "vu", t: "세로 · 상승", i: "rows" }, { v: "vb", t: "세로 · 양방향", i: "rows" }, { v: "hr", t: "가로 · 오른쪽", i: "columns" }, { v: "hb", t: "가로 · 양방향", i: "columns" }]; const cur = MS.find((x) => x.v === bmode) || MS[2]; return h`<${PE.Button} size="sm" onClick=${() => setBmode(MS[(MS.indexOf(cur) + 1) % MS.length].v)} title="누를 때마다 대진표 모양이 바뀌어요">${I(cur.i)} ${cur.t}<//>`; })() : null}
             ${!played ? h`<${PE.Button} size="sm" onClick=${isL ? shuffle : shuffleT} title=${isL ? "경기 순서를 무작위로 다시 짜요" : "대진을 무작위로 다시 짜요"}>${I("shuffle")} 대진표 섞기<//>` : null}
             <${PE.Button} size="sm" onClick=${() => setEditOpen(true)}>${I("settings")} 설정<//>
-            <${PE.Button} size="sm" disabled=${!played} onClick=${() => setReset(true)}>${I("eraser")} 기록 초기화<//>
+            <${PE.Button} size="sm" disabled=${!played} onClick=${() => setReset(true)}>${I("eraser")} 초기화<//>
             <${PE.Button} icon size="sm" aria-label="보관함으로 보내기" title="보관함으로 보내기" onClick=${() => setDel(true)}>${I("archive")}<//></div></div>
         <div className="cd-prog"><${PE.Bar} pctText pct=${pct} runner=${S.state.prefs.runner !== false ? "kid" : false} label="대회 진행률" />${champ ? h`<span className="champ">${I("trophy")} 우승 ${champ}</span>` : null}</div></section>
 
@@ -496,7 +496,7 @@ return h`<${PE.Dialog} open=${true} onClose=${onClose} wide full>
           <span className="cc-top"><span className="badge"><span className="bl">${x.format === "league" ? "리그" : "토너먼트"}</span><span className="bs">${x.format === "league" ? "리" : "토"}</span></span><b>${x.name}</b></span>
           <span className="cc-bar"><${PE.Bar} pct=${pct} label="대회 진행률" /><em className="num">${pct}%</em></span></button>`; })}</div>
         <div className="comp-btns"><${PE.Button} size="sm" variant="primary" onClick=${() => setWiz(true)}>${I("plus")} 대회 만들기<//>
-          <${PE.Button} size="sm" onClick=${() => setBox(true)}>${I("archive")} 보관함${kept.length ? ` ${kept.length}` : ""}<//>
+          <${PE.Button} size="sm" onClick=${() => setBox(true)}>${I("archive")} 보관함<//>
           <${PE.Button} size="sm" onClick=${() => setSb(true)}>${I("clipboard")} 점수판<//></div></div>
       ${c ? h`<${CompView} key=${c.id} c=${c} S=${S} students=${yd.students} onGone=${() => setSel(null)} />` : null}
       ${sb ? h`<${Scoreboard} comps=${live} students=${yd.students} onClose=${() => setSb(false)} onSave=${(id, m, res) => S.updYear((y) => ({ ...y, comps: y.comps.map((x) => (x.id === id ? applyRes(x, m, res) : x)) }))} />` : null}

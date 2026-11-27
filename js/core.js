@@ -120,6 +120,11 @@
     for (const [date, periods] of Object.entries(yd.schedule)) {
       if (date < r.start || date > r.end || PE.isWeekend(date) || off.has(date)) continue;
       for (const key of Object.values(periods)) { const e = (by[key] = by[key] || { planned: 0, done: 0 }); e.planned++; if (date <= today) e.done++; }
+      /* 합반 수업: 같은 글자(A·B)로 묶인 교시는 여러 반을 함께 불러서 해요. 묶인 시간 전체가 각 반의 수업 시간이 돼요 */
+      const jm = (yd.joint || {})[date]; if (!jm) continue;
+      const groups = {}; for (const [p, g] of Object.entries(jm)) if (periods[p]) (groups[g] = groups[g] || []).push(periods[p]);
+      for (const keys of Object.values(groups)) { if (new Set(keys).size < 2) continue;
+        for (const key of new Set(keys)) { const own = keys.filter((x) => x === key).length; const e = (by[key] = by[key] || { planned: 0, done: 0 }); e.extra = (e.extra || 0) + keys.length - own; if (date <= today) e.extraDone = (e.extraDone || 0) + keys.length - own; } }
     }
     return by;
   };
@@ -244,6 +249,7 @@
           return { ...y, schedule };
         })),
         clearSchedule: (sem) => set((p) => yr(p, (y) => { const r = sem === 2 ? y.sem2 : y.sem1; const schedule = {}; for (const [d, v] of Object.entries(y.schedule)) if (!(r.start && d >= r.start && d <= r.end)) schedule[d] = v; return { ...y, schedule }; })),
+        setJoint: (date, map) => set((p) => yr(p, (y) => { const joint = { ...(y.joint || {}) }; if (map && Object.keys(map).length) joint[date] = map; else delete joint[date]; return { ...y, joint }; })),
         setScheduleDay: (date, map) => set((p) => yr(p, (y) => { const schedule = { ...y.schedule }; if (map && Object.keys(map).length) schedule[date] = map; else delete schedule[date]; return { ...y, schedule }; })),
         setHours: (sem, key, n) => set((p) => yr(p, (y) => { const h = { ...(y.hours[sem] || {}) }; if (n == null || Number.isNaN(n)) delete h[key]; else h[key] = n; return { ...y, hours: { ...y.hours, [sem]: h } }; })),
         addStudents: (g, k, list) => set((p) => yr(p, (y) => { let n = Math.max(0, ...y.students.filter((x) => x.grade === g && x.klass === k).map((x) => x.number || 0)); return { ...y, students: [...y.students, ...list.map((x) => ({ id: x.id || PE.uid(), grade: g, klass: k, number: x.number || ++n, name: x.name, foreign: x.foreign || "", gender: x.gender || "", extra: x.extra || {} }))] }; })),

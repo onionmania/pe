@@ -1395,3 +1395,26 @@ form.field-row { grid-template-columns: minmax(0, 1fr) 40px; }
 .ms-names { display: flex; flex-wrap: wrap; gap: 4px; } .ms-chip { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px 0 6px; border-radius: 999px; background: var(--surface-2); font-weight: 650; font-size: 12px; } .ms-chip i { font-style: normal; color: var(--text-3); font-size: 11px; min-width: 14px; text-align: right; }
 .ms-all { display: inline-block; padding: 2px 10px; border-radius: 999px; background: color-mix(in srgb, #f59e0b 18%, var(--surface)); color: #b45309; font-weight: 700; font-size: 12px; }
 @media (max-width: 600px) { .ms-part { grid-template-columns: 1fr; gap: 3px; } }
+
+/* 로고 이모지: 흰 글자로 사라지지 않게 */
+.brand-mark, .emoji-b { color: var(--text); font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+/* 오늘 카드 */
+.td-row { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; } .td-slot { position: relative; display: grid; justify-items: center; align-content: start; gap: 4px; padding: 6px 2px; border-radius: var(--radius-sm); background: var(--surface-2); }
+.td-slot.empty { background: transparent; border: var(--border-w) dashed var(--border); } .td-p { font-size: 11px; color: var(--text-3); font-weight: 650; } .td-none { color: var(--text-3); opacity: .5; min-height: 24px; display: grid; place-items: center; }
+.td-slot .class-tag { width: calc(100% - 6px); min-width: 0; justify-content: center; } .td-j { position: absolute; top: 2px; right: 3px; font-style: normal; font-size: 9px; font-weight: 800; color: #b45309; background: color-mix(in srgb, #f59e0b 22%, var(--surface)); border-radius: 999px; padding: 0 4px; }
+.today-next { margin-top: 14px; padding-top: 10px; border-top: var(--border-w) dashed var(--border); } .td-row.small .td-slot { opacity: .85; padding: 4px 2px; } .td-row.small .td-p { font-size: 10px; }
+/* 기초 시간표 칸 가득 채우기 */
+.tt-cell.filled { padding: 3px; } .tt-cell .class-tag { width: 100%; height: 100%; min-width: 0; display: grid; place-items: center; font-size: clamp(13px, 3.6vw, 17px); border-radius: calc(var(--radius-sm) - 2px); }
+/* 시수 표: 실제 운영 열 */
+.hours-h, .hours-r { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.actual { font-weight: 700; display: inline-flex; align-items: baseline; gap: 3px; color: var(--text-3); } .actual.up { color: #15803d; } .actual em { font-style: normal; font-size: 11px; font-weight: 750; }
+.diff.ok { padding: 3px 7px; }
+/* 합반 수업 입력 */
+.joint { display: grid; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: var(--border-w) dashed var(--border-strong); } .joint-h { display: grid; gap: 2px; }
+.joint-row { display: flex; flex-wrap: wrap; gap: 6px; } .joint-b { display: grid; justify-items: center; gap: 1px; min-width: 64px; padding: 5px 8px; border-radius: var(--radius-sm); border: var(--border-w) dashed var(--border-strong); background: var(--surface); color: var(--text-2); } .joint-b small { font-size: 10px; color: var(--text-3); } .joint-b i { font-style: normal; font-weight: 800; font-size: 12px; color: var(--text-3); }
+.joint-b.on { border-style: solid; } .joint-b.gA { border-color: #f59e0b; background: color-mix(in srgb, #f59e0b 14%, var(--surface)); } .joint-b.gB { border-color: #8b5cf6; background: color-mix(in srgb, #8b5cf6 12%, var(--surface)); } .joint-b.on i { color: var(--text); }
+.joint-sum { display: grid; gap: 3px; font-size: var(--fs-sm); color: #15803d; font-weight: 650; } .joint-sum svg { width: 13px; height: 13px; vertical-align: -2px; }
+/* 평가: 명렬표 모양에 맞추기 */
+.ev-t { font-size: var(--fs-md); } .ev-t th { font-size: var(--fs-xs); color: var(--text-3); font-weight: 650; padding-bottom: 8px; border-bottom: var(--border-w) solid var(--border-strong); }
+.ev-t td { height: 42px; padding-top: 0; padding-bottom: 0; border-top: 0; border-bottom: var(--border-w) solid var(--border); } .ev-t td.num { font-weight: 650; color: var(--text-3); } .ev-t td.l b { font-weight: 650; }
+.th-w { gap: 1px; } .th-lock { width: 18px; height: 18px; } .th-lock svg { width: 12px; height: 12px; }

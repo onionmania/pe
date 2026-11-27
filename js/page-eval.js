@@ -152,6 +152,7 @@
     const list = useMemo(() => students.filter((x) => x.grade === cls.grade && x.klass === cls.klass).sort((a, b) => a.number - b.number), [students, cls.key]);
     const its = items.filter((it) => !it.hidden && (!(it.grades || []).length || it.grades.includes(cls.grade)));
     const [cvId, setCvId] = useState(null);
+    const boys = list.filter((x) => x.gender === "M").length, girls = list.filter((x) => x.gender === "F").length;
     const filled = list.length * its.length ? Math.round((list.reduce((s, x) => s + its.filter((it) => { const v = (data[x.id] || {})[it.id]; return v !== "" && v != null; }).length, 0) / (list.length * its.length)) * 100) : 0;
     const convOf = (it) => (it.kind === "score" && it.conv && it.conv[cls.key]) || null;
     const lvMaps = {}; its.forEach((it) => { const cv = convOf(it); if (cv && cv.on) lvMaps[it.id] = levelsFor(list.map((x) => ({ id: x.id, v: (data[x.id] || {})[it.id] })), cv); });
@@ -169,7 +170,7 @@
       if (it.kind !== "score") return h`<span className="th-w">${it.name}${lockBtn}</span>`; const cv = convOf(it);
       return h`<span className="th-w">${it.name}<button type="button" className="th-lock th-cv" title="눌러서 숫자를 4단계로 바꿔 보기" aria-label=${it.name + " 4단계로 변환"} onClick=${() => setCvId(it.id)}>${I("swap")}</button>${cv && cv.on ? h`<em className="th-em">4단계</em>` : null}${lockBtn}</span>`; };
     return h`<section className=${cn("card roster-panel", multi && "multi")} style=${{ "--tag": PE.GRADE_COLORS[cls.grade] }}>
-      <div className="card-head tight"><div className="card-title"><span className="rp-dot"></span>${cls.grade}학년 ${cls.klass}반 <span className="card-sub num">${list.length}명${its.length ? ` · 입력 ${filled}%` : ""}</span></div></div>
+      <div className="card-head tight"><div className="card-title"><span className="rp-dot"></span>${cls.grade}학년 ${cls.klass}반 <span className="card-sub num">${list.length}명${boys || girls ? ` · 남 ${boys} · 여 ${girls}` : ""}</span></div></div>
       ${!list.length ? h`<p className="card-sub">명렬표에 학생이 없어요.</p>` : !its.length ? h`<p className="card-sub">이 학년에 해당하는 평가 항목이 없어요. ‘항목 관리’에서 만들어 주세요.</p>` : h`<div className="paps-scroll"><table className=${cn("ev-t", nostep && "nostep")}><thead><tr><th>번호</th><th className="l">이름</th><th>성별</th>${its.map((it) => h`<th key=${it.id}>${head(it)}</th>`)}</tr></thead>
         <tbody>${list.map((x, i) => h`<tr key=${x.id}><td className="num">${x.number}</td><td className="l"><b><${PE.Nm} name=${x.name} /></b></td><td><span className=${"g-pill " + x.gender}>${x.gender === "M" ? "남" : x.gender === "F" ? "여" : "–"}</span></td>${its.map((it) => h`<td key=${it.id} className=${"k-" + it.kind}>${cell(x, it, i)}</td>`)}</tr>`)}</tbody></table></div>`}
       ${cvIt ? h`<${ConvDialog} it=${cvIt} title=${`${cls.grade}학년 ${cls.klass}반`} rows=${list.map((x) => ({ id: x.id, v: (data[x.id] || {})[cvIt.id] }))} conv=${convOf(cvIt)} onClose=${() => setCvId(null)}

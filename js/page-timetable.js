@@ -85,10 +85,10 @@
     });
 
     /* 시수 */
-    const rows = classes.map((c) => ({ ...c, target: (yd.hours[sem] || {})[c.key], planned: (stats[c.key] || {}).planned || 0 }));
-    const totalTarget = rows.reduce((n, x) => n + (x.target || 0), 0), totalPlanned = rows.reduce((n, x) => n + x.planned, 0);
+    const rows = classes.map((c) => ({ ...c, target: (yd.hours[sem] || {})[c.key], planned: (stats[c.key] || {}).planned || 0, extra: (stats[c.key] || {}).extra || 0 }));
+    const totalTarget = rows.reduce((n, x) => n + (x.target || 0), 0), totalPlanned = rows.reduce((n, x) => n + x.planned, 0), totalActual = rows.reduce((n, x) => n + x.planned + x.extra, 0);
     const diffCell = (x) => { if (x.target == null) return h`<span className="card-sub">–</span>`; const d = x.target - x.planned;
-      return d === 0 ? h`<span className="diff ok">${I("check", "")} 딱 맞아요</span>` : d > 0 ? h`<span className="diff short num">${d} 부족</span>` : h`<span className="diff over num">${-d} 초과</span>`; };
+      return d === 0 ? h`<span className="diff ok">${I("check", "")}</span>` : d > 0 ? h`<span className="diff short num">${d} 부족</span>` : h`<span className="diff over num">${-d} 초과</span>`; };
 
     const dayMap = dayEdit ? yd.schedule[dayEdit] || {} : {};
     const setDay = (period, key) => { const next = { ...dayMap }; if (key) next[period] = key; else delete next[period]; S.setScheduleDay(dayEdit, next); };
@@ -120,11 +120,11 @@
         <section className="card">
           <div className="card-head tight"><div className="card-title"><span className="ico sm">${I("clipboard")}</span>수업 시수 계산 <span className="card-sub">${sem}학기</span></div></div>
           <div className="hours">
-            <div className="hours-h"><span>학급</span><span>목표</span><span>배정</span><span>차이</span></div>
+            <div className="hours-h"><span>학급</span><span>목표</span><span>배정</span><span>차이</span><span title="합반 수업을 반영한 실제 수업 시간">실제 운영</span></div>
             ${rows.map((x) => h`<div className="hours-r" key=${x.key}><span><${PE.ClassTag} k=${x.key} /></span>
               <input className="input hours-in num" type="number" min="0" inputMode="numeric" placeholder="시수" aria-label=${x.key + " 목표 시수"} value=${x.target == null ? "" : x.target} onChange=${(e) => S.setHours(sem, x.key, e.target.value === "" ? null : Math.max(0, Math.floor(Number(e.target.value))))} />
-              <b className="num">${x.planned}</b>${diffCell(x)}</div>`)}
-            <div className="hours-r total"><span>합계</span><b className="num">${totalTarget || "–"}</b><b className="num">${totalPlanned}</b><span></span></div></div>
+              <b className="num">${x.planned}</b>${diffCell(x)}<span className=${cn("actual num", x.extra > 0 && "up")}>${x.planned + x.extra}${x.extra > 0 ? h`<em>+${x.extra}</em>` : null}</span></div>`)}
+            <div className="hours-r total"><span>합계</span><b className="num">${totalTarget || "–"}</b><b className="num">${totalPlanned}</b><span></span><b className="num">${totalActual}</b></div></div>
         </section>
       </div>
 
@@ -149,7 +149,14 @@
 
       <${PE.Dialog} open=${!!dayEdit} onClose=${() => setDayEdit(null)} fit>${dayEdit ? h`<h2>${PE.fmt(dayEdit, { dow: true })} 수업</h2>
         <div className="day-rows"><div className="day-row day-head"><span>교시</span><span>선택됨</span><span>학급 고르기</span></div>${periods.map((p) => h`<div className="day-row" key=${p}><span className="num">${p}교시</span><span className=${cn("day-now", !dayMap[p] && "empty")} style=${{ "--tag": dayMap[p] ? PE.GRADE_COLORS[PE.keyGrade(dayMap[p])] : undefined }}>${dayMap[p] ? h`<b className="num">${dayMap[p]}</b>` : h`<em>–</em>`}</span><div className="day-pick"><${ClassChips} classes=${classes} size="sm" value=${dayMap[p]} onPick=${(k) => setDay(p, k)} /></div></div>`)}</div>
-        <div className="dialog-foot"><div><${PE.Button} onClick=${() => S.setScheduleDay(dayEdit, { ...weeklyOf(dayEdit) })}>기초 시간표로 채우기<//></div><div><${PE.Button} variant="danger" onClick=${() => S.setScheduleDay(dayEdit, {})}>삭제<//><${PE.Button} variant="primary" onClick=${() => setDayEdit(null)}>완료<//></div></div>` : null}<//>
+        ${(() => { const jm = (yd.joint || {})[dayEdit] || {}; const GL = ["A", "B"]; const used = periods.filter((p) => dayMap[p]);
+          if (used.length < 2) return null;
+          const cycle = (p) => { const cur = jm[p]; const nx = !cur ? "A" : cur === "A" ? "B" : null; const next = { ...jm }; if (nx) next[p] = nx; else delete next[p]; S.setJoint(dayEdit, next); };
+          const groups = GL.map((g) => ({ g, ps: used.filter((p) => jm[p] === g) })).filter((x) => x.ps.length >= 2 && new Set(x.ps.map((p) => dayMap[p])).size >= 2);
+          return h`<div className="joint"><div className="joint-h"><b>합반 수업</b><span className="card-sub">반이 적어서 여러 반을 같이 불러 할 때, 같이 하는 교시를 같은 글자로 묶어 주세요.</span></div>
+            <div className="joint-row">${used.map((p) => h`<button key=${p} type="button" className=${cn("joint-b", jm[p] && "on g" + jm[p])} aria-label=${`${p}교시 ${dayMap[p]} 합반 ${jm[p] || "안 함"}`} onClick=${() => cycle(p)}><small>${p}교시</small><b className="num">${dayMap[p]}</b><i>${jm[p] || "–"}</i></button>`)}</div>
+            ${groups.length ? h`<div className="joint-sum">${groups.map((x) => { const ks = [...new Set(x.ps.map((p) => dayMap[p]))]; return h`<span key=${x.g}>${I("check", "")} ${ks.join("·")} 함께 ${x.ps[0]}~${x.ps[x.ps.length - 1]}교시 → 각 반 ${x.ps.length}시간</span>`; })}</div>` : null}</div>`; })()}
+        <div className="dialog-foot"><div><${PE.Button} onClick=${() => S.setScheduleDay(dayEdit, { ...weeklyOf(dayEdit) })}>기초 시간표로 채우기<//></div><div><${PE.Button} variant="danger" onClick=${() => { S.setScheduleDay(dayEdit, {}); S.setJoint(dayEdit, null); }}>삭제<//><${PE.Button} variant="primary" onClick=${() => setDayEdit(null)}>완료<//></div></div>` : null}<//>
 
       <${PE.Dialog} open=${applyOpen} onClose=${() => setApplyOpen(false)}><h2>기초 시간표를 ${sem}학기에 적용</h2>
         <p className="sub">수업일 ${applyCount}일에 요일별로 기초 시간표를 넣어요. 공휴일과 재량휴업일은 건너뛰어요.</p>

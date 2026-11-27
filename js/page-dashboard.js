@@ -38,17 +38,21 @@
     else if (sem.start && today < sem.start) msg = "학기 시작 전"; else if (cur === "break") msg = "방학 중";
     else if (cur === 2 && yd.sem2.end && today > yd.sem2.end) msg = "학기 종료"; else msg = "수업일";
     const t = PE.todayClasses(yd, today);
+    let nx = null; for (let i = 1; i <= 21 && !nx; i++) { const dt = PE.addDays(today, i); const r = PE.todayClasses(yd, dt); if (r.items.length) nx = { date: dt, items: r.items }; }
+    const periods = Array.from({ length: PE.PERIODS }, (_, i) => i + 1);
+    const row = (items, date, small) => { const by = {}; items.forEach((x) => (by[x.period] = x.key)); const jm = (yd.joint || {})[date] || {};
+      return h`<div className=${cn("td-row", small && "small")}>${periods.map((p) => h`<div key=${p} className=${cn("td-slot", !by[p] && "empty")}><span className="td-p num">${p}교시</span>${by[p] ? h`<${PE.ClassTag} k=${by[p]} />` : h`<span className="td-none">–</span>`}${jm[p] && by[p] ? h`<i className="td-j" title="합반 수업">합</i>` : null}</div>`)}</div>`; };
     return h`<section className="card today-card">
       <div className="today-head"><div><div className="kicker">오늘</div><div className="date num">${d.getMonth() + 1}월 ${d.getDate()}일 <span>${DOW[d.getDay()]}요일</span></div></div><span className=${cn("badge", tone)}>${msg}</span></div>
-      <div className="today-list-title">오늘 수업${t.from === "weekly" ? h` <span className="card-sub">· 기초 시간표 기준</span>` : null}</div>
-      ${t.items.length === 0 ? h`<p className="card-sub">${t.from === "off" ? "오늘은 수업이 없어요." : "시간표에 오늘 수업이 없어요."}</p>` : h`<div className="today-classes">${t.items.map((x) =>
-        h`<div key=${x.period} className="today-class"><span className="num">${x.period}교시</span><${PE.ClassTag} k=${x.key} /></div>`)}</div>`}
+      <div className="today-list-title">오늘 수업${t.items.length ? h` <span className="card-sub num">· ${t.items.length}교시</span>` : null}${t.from === "weekly" ? h` <span className="card-sub">· 기초 시간표 기준</span>` : null}</div>
+      ${t.items.length === 0 ? h`<p className="card-sub">${t.from === "off" ? "오늘은 수업이 없어요." : "시간표에 오늘 수업이 없어요."}</p>` : row(t.items, today, false)}
+      ${nx ? h`<div className="today-next"><div className="today-list-title">다음 수업일 <span className="card-sub num">· ${PE.fmt(nx.date, { dow: true })}</span></div>${row(nx.items, nx.date, true)}</div>` : null}
     </section>`;
   }
 
   function ProgressCard({ icon, title, rows, values, empty, tone, wide, onMore }) {
     return h`<section className="card">
-      <div className="card-head tight"><div className="card-title"><span className="ico sm">${I(icon)}</span>${title}</div>${onMore ? h`<button type="button" className="pc-more" onClick=${onMore} title=${title + " 빠진 것 보기"}>${I("listcheck")} 빠진 것</button>` : null}</div>
+      <div className="card-head tight"><div className="card-title"><span className="ico sm">${I(icon)}</span>${title}</div>${onMore ? h`<button type="button" className="pc-more" onClick=${onMore} title=${title + " 미측정 보기"}>${I("listcheck")} 미측정</button>` : null}</div>
       ${rows.length === 0 && empty ? h`<p className="empty-note" style=${{ marginTop: 0 }}>${empty}</p>` : rows.length === 0 ? h`<p className="empty-note" style=${{ marginTop: 0 }}><a href="#settings" style=${{ color: "var(--primary)", fontWeight: 700 }}>기본 설정</a>에서 담당 학급을 골라 주세요.</p>` : h`<div>${rows.map((r) => {
         const v = values ? values[r.id] : null;
         return h`<div className=${"grade-row" + (wide ? " wide" : "")} key=${r.id}><span className="g num" title=${r.label}>${r.label}</span>
