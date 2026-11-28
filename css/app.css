@@ -1418,3 +1418,34 @@ form.field-row { grid-template-columns: minmax(0, 1fr) 40px; }
 .ev-t { font-size: var(--fs-md); } .ev-t th { font-size: var(--fs-xs); color: var(--text-3); font-weight: 650; padding-bottom: 8px; border-bottom: var(--border-w) solid var(--border-strong); }
 .ev-t td { height: 42px; padding-top: 0; padding-bottom: 0; border-top: 0; border-bottom: var(--border-w) solid var(--border); } .ev-t td.num { font-weight: 650; color: var(--text-3); } .ev-t td.l b { font-weight: 650; }
 .th-w { gap: 1px; } .th-lock { width: 18px; height: 18px; } .th-lock svg { width: 12px; height: 12px; }
+
+/* ===== 업데이트 12 ===== */
+/* 변환 창: 단계별 기록 범위 */
+.cv-rg .cv-r { margin-left: auto; flex: none; min-width: 64px; text-align: right; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); white-space: nowrap; }
+.cv-rg .cv-r + .cv-n { margin-left: 6px; }
+.cv-warn.note { color: var(--text-3); font-weight: 600; font-size: 12px; }
+@media (max-width: 420px) { .cv-rg .cv-r { min-width: 0; font-size: 12px; } }
+/* 변환된 칸: 4단계 칸과 같은 크기·글자 */
+.flip .face.b { inset: auto; left: 50%; top: 50%; width: 52px; height: 30px; margin: -15px 0 0 -26px; font-size: inherit; white-space: nowrap; padding: 0; }
+/* 모바일: 담당 반 버튼 8개까지 한 줄 */
+@media (max-width: 700px) {
+  .roster-bar .roster-tabs, .roster-tabs { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; width: 100%; flex: 1 1 100%; }
+  .roster-tabs .roster-tab { min-width: 0; height: 34px; padding: 0; font-size: 12px; justify-content: center; }
+}
+/* 평가 머리: 전환·잠금 버튼은 항목 이름 위 */
+.th-w { flex-direction: column; gap: 1px; } .th-btns { display: inline-flex; align-items: center; gap: 2px; } .th-nm { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+/* 모바일: 대회 상세의 눌러도 반응 없는 회색 정보 알약 숨기기 */
+@media (max-width: 600px) {
+  .cdet .club-meta .badge { display: none; }
+  .cdet .club-meta { gap: 6px; }
+  /* 경기 일정: 거르기 + 보기 방식을 한 줄에 */
+  .comp-cols .card-head:has(.bar-btns) { flex-wrap: nowrap; gap: 6px; align-items: center; }
+  .comp-cols .card-head:has(.bar-btns) .card-title { flex: none; font-size: 15px; white-space: nowrap; }
+  .comp-cols .card-head .bar-btns { flex: 1; min-width: 0; flex-wrap: nowrap; gap: 4px; justify-content: flex-end; }
+  .comp-cols .card-head .bar-btns .seg { flex: 1 1 0; min-width: 0; }
+  .comp-cols .card-head .bar-btns .seg button { flex: 1; min-width: 0; padding: 0 4px; font-size: 12px; white-space: nowrap; }
+}
+@media (max-width: 600px) {
+  .comp-cols .card-head:has(.bar-btns) .card-title { font-size: 14px; }
+  .comp-cols .card-head .bar-btns .seg { padding: 2px; } .comp-cols .card-head .bar-btns .seg button { padding: 0 3px; font-size: 11.5px; letter-spacing: -0.3px; height: 28px; }
+}

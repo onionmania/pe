@@ -129,8 +129,29 @@
     return h`<div className="bar-fill" style=${{ width: w + "%" }}>${runner && pct >= 100 ? h`<span className="runner-wrap"><${PE.Cheer} kid=${runner === "kid"} />${pt}</span>` : runner && pct > 0 ? h`<span className="runner-wrap"><${PE.Runner} kid=${runner === "kid"} />${pt}</span>` : runner ? h`<span className="runner-wrap sit"><${PE.Sitter} kid=${runner === "kid"} />${pt}</span>` : null}</div>`;
   }
 
+  /* 모바일 뒤로가기: 창·팝업이 떠 있을 때 뒤로가기를 누르면 페이지가 아니라 그 창만 닫혀요 */
+  const backStack = [], backWait = []; let backSkip = 0;
+  const backPush = (ent) => { backStack.push(ent); try { history.pushState({ pedlg: 1 }, ""); } catch (e) {} };
+  window.addEventListener("popstate", () => {
+    if (backSkip > 0) { backSkip--; if (backSkip === 0) backWait.splice(0).forEach(backPush); return; }
+    const ent = backStack.pop(); if (ent) ent.close();
+  });
+  function useBackClose(open, onClose) {
+    const ref = React.useRef(onClose); ref.current = onClose;
+    useEffect(() => {
+      if (!open) return;
+      const ent = { close: () => ref.current() };
+      if (backSkip > 0) backWait.push(ent); else backPush(ent);
+      return () => {
+        const w = backWait.indexOf(ent); if (w >= 0) { backWait.splice(w, 1); return; }
+        const i = backStack.indexOf(ent); if (i < 0) return;
+        backStack.splice(i, 1); backSkip++; try { history.back(); } catch (e) { backSkip--; }
+      };
+    }, [open]);
+  }
+
   PE.Dialog = function Dialog({ open, onClose, wide, fit, narrow, mid, full, children }) {
-    const ref = React.useRef(null);
+    const ref = React.useRef(null); useBackClose(open, onClose);
     useEffect(() => { if (!open) return; const k = (e) => { if (e.key !== "Escape") return; const all = document.querySelectorAll(".overlay"); if (all[all.length - 1] === ref.current) onClose(); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [open]);
     if (!open) return null;
     return ReactDOM.createPortal(h`<div ref=${ref} className="overlay" onMouseDown=${(e) => e.target === e.currentTarget && onClose()}><div className=${cn("dialog", wide && "wide", fit && "fit", narrow && "narrow", mid && "mid", full && "full")} role="dialog" aria-modal="true">${children}</div></div>`, document.body);
@@ -138,7 +159,7 @@
 
   /* 클릭한 자리 근처에 뜨는 작은 팝업 (바깥을 누르거나 Esc로 닫힘) */
   PE.Popover = function Popover({ open, at, onClose, children }) {
-    const ref = React.useRef(null); const [pos, setPos] = React.useState(null);
+    const ref = React.useRef(null); const [pos, setPos] = React.useState(null); useBackClose(open && !!at, onClose);
     React.useLayoutEffect(() => {
       if (!open || !at) { setPos(null); return; }
       const el = ref.current; const w = el ? el.offsetWidth : 200, hh = el ? el.offsetHeight : 120; const m = 8;

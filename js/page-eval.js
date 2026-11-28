@@ -114,6 +114,9 @@
     const lv = useMemo(() => (bad || rBad ? new Map() : levelsFor(rows, cv)), [rows, mode, rS, dir, rg]);
     const total = rows.filter((x) => x.v !== "" && x.v != null && Number.isFinite(Number(x.v))).length;
     const cnt = [0, 0, 0, 0]; lv.forEach((k) => cnt[k]++);
+    /* 비율로 나눴을 때 각 단계에 실제로 들어가는 기록 범위 (예: 78 ~ 85) */
+    const rng = [0, 1, 2, 3].map((i) => { const vs = rows.filter((x) => lv.get(x.id) === i).map((x) => Number(x.v)); return vs.length ? (Math.min(...vs) === Math.max(...vs) ? String(Math.min(...vs)) : Math.min(...vs) + " ~ " + Math.max(...vs)) : "–"; });
+    const tie = mode === "ratio" && !rBad && total > 0 && (() => { const t = r.reduce((x, y) => x + y, 0); let c = 0; return r.some((x, i) => { c += x; const want = Math.round((total * c) / (t || 1)) - Math.round((total * (c - x)) / (t || 1)); return want !== cnt[i]; }); })();
     /* 어느 구간에도 안 들어가는 숫자 찾기 (구간 사이 빈틈 + 기록이 구간 밖인 경우) */
     const holes = (() => { if (mode !== "range" || bad) return []; const dec = rgN.some(([a, b]) => !Number.isInteger(a) || !Number.isInteger(b)); const u = dec ? 0.1 : 1; const rd = (x) => Math.round(x * 10) / 10;
       const iv = [...rgN].sort((p, q) => p[0] - q[0]); const out = []; const fm = (a, b) => (a === b ? String(a) : `${a} ~ ${b}`);
@@ -133,9 +136,10 @@
           <span className=${"ev-lv static lv" + i}>${LV_FULL[i]}</span>
           ${mode === "ratio" ? h`<${DecStepper} label=${LV_FULL[i] + " 비율"} max=${10} bad=${rBad} value=${rS[i]} onChange=${(v) => setRS(rS.map((x, j) => (j === i ? v : x)))} />`
             : h`<${DecStepper} label=${LV_FULL[i] + " 시작"} bad=${bc[i][0]} value=${rg[i][0]} onChange=${(v) => setRow(i, 0, v)} /><span className="cv-til">~</span><${DecStepper} label=${LV_FULL[i] + " 끝"} bad=${bc[i][1]} value=${rg[i][1]} onChange=${(v) => setRow(i, 1, v)} />`}
+          ${mode === "ratio" ? h`<span className="cv-r num" title="이 단계에 들어가는 기록">${bad || rBad ? "" : rng[i]}</span>` : null}
           <span className=${"cv-n num lv" + i}>${bad || rBad ? "–" : cnt[i] + "명"}</span>
           </div>`)}</div>
-        <p className="cv-warn" role="alert">${warn}</p>
+        <p className=${cn("cv-warn", !warn && tie && "note")} role=${warn ? "alert" : undefined}>${warn || (tie ? "같은 기록은 같은 단계로 묶여서 인원이 비율과 조금 다를 수 있어요" : "")}</p>
       </div>
       <div className="dialog-foot"><div>${conv && conv.on ? h`<${PE.Button} onClick=${onOff}>${I("swap")} 원래 점수로<//>` : null}</div>
         <div><${PE.Button} onClick=${onClose}>취소<//><${PE.Button} variant="primary" disabled=${bad || rBad || holes.length > 0 || !total} onClick=${() => onApply({ ...cv, on: true })}>변환하기<//></div></div><//>`;
@@ -167,8 +171,8 @@
     const lockOf = (it) => !!(it.lock && it.lock[cls.key]);
     const head = (it) => { const lk = lockOf(it);
       const lockBtn = h`<button type="button" className=${cn("th-lock", lk && "on")} aria-pressed=${lk} title=${lk ? "잠금 해제" : "잠그기 (수정 못 하게)"} aria-label=${it.name + (lk ? " 잠금 해제" : " 잠그기")} onClick=${() => setLock(it.id, cls.key, !lk)}>${I(lk ? "lock" : "unlock")}</button>`;
-      if (it.kind !== "score") return h`<span className="th-w">${it.name}${lockBtn}</span>`; const cv = convOf(it);
-      return h`<span className="th-w">${it.name}<button type="button" className="th-lock th-cv" title="눌러서 숫자를 4단계로 바꿔 보기" aria-label=${it.name + " 4단계로 변환"} onClick=${() => setCvId(it.id)}>${I("swap")}</button>${cv && cv.on ? h`<em className="th-em">4단계</em>` : null}${lockBtn}</span>`; };
+      if (it.kind !== "score") return h`<span className="th-w"><span className="th-btns">${lockBtn}</span><span className="th-nm">${it.name}</span></span>`; const cv = convOf(it);
+      return h`<span className="th-w"><span className="th-btns"><button type="button" className="th-lock th-cv" title="눌러서 숫자를 4단계로 바꿔 보기" aria-label=${it.name + " 4단계로 변환"} onClick=${() => setCvId(it.id)}>${I("swap")}</button>${lockBtn}</span><span className="th-nm">${it.name}${cv && cv.on ? h`<em className="th-em">4단계</em>` : null}</span></span>`; };
     return h`<section className=${cn("card roster-panel", multi && "multi")} style=${{ "--tag": PE.GRADE_COLORS[cls.grade] }}>
       <div className="card-head tight"><div className="card-title"><span className="rp-dot"></span>${cls.grade}학년 ${cls.klass}반 <span className="card-sub num">${list.length}명${boys || girls ? ` · 남 ${boys} · 여 ${girls}` : ""}</span></div></div>
       ${!list.length ? h`<p className="card-sub">명렬표에 학생이 없어요.</p>` : !its.length ? h`<p className="card-sub">이 학년에 해당하는 평가 항목이 없어요. ‘항목 관리’에서 만들어 주세요.</p>` : h`<div className="paps-scroll"><table className=${cn("ev-t", nostep && "nostep")}><thead><tr><th>번호</th><th className="l">이름</th><th>성별</th>${its.map((it) => h`<th key=${it.id}>${head(it)}</th>`)}</tr></thead>
